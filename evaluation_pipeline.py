@@ -142,4 +142,4 @@ def mnist_pipeline(classical_model, hybrid_model, epsilon=0.01, maximum_iteratio
         "acc_drop":[ch_fgsm_acc_drop,ch_pgd_acc_drop,ch_cw_acc_drop,hc_fgsm_acc_drop,hc_pgd_acc_drop,hc_cw_acc_drop]
     }
     transferability_dataframe = pd.DataFrame(transferability_data)
-    return robustness_data,transferability_data
+    return robustness_dataframe,transferability_dataframe
