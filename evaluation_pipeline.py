@@ -14,10 +14,15 @@ import pandas as pd
 import hashlib
 
 #Generates hash for given string
-def generate_sha3_256_hash(input_string):
-    sha3_256_object = hashlib.sha3_256()
-    sha3_256_object.update(input_string.encode('utf-8'))
-    return sha3_256_object.hexdigest()
+def generate_sha3_256_hash(model):
+    filepath = "tmp/temp.weights.h5"
+    sha256_hash = hashlib.sha256()
+    model.save(filepath)
+    with open(filepath, "rb") as f:
+        # Read and update hash string value in chunks
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
 
 #loads and returns test-set from MNIST dataset of given subset size
 def load_mnist_testset(subset_size):
@@ -123,7 +128,7 @@ def mnist_pipeline(classical_model, hybrid_model, epsilon=0.01, maximum_iteratio
     hc_cw_tsr, hc_cw_acc_drop = evaluate_transferability(classical_classifier,hybrid_x_cw,y_test,classical_acc_cw)
     #Creating Dataframe for Robustness Data
     robustness_data = {
-        "CNN_ID": 4*[generate_sha3_256_hash(classical_model.summary())]+4*[generate_sha3_256_hash(hybrid_model.summary())],
+        "CNN_ID": 4*[generate_sha3_256_hash(classical_model)]+4*[generate_sha3_256_hash(hybrid_model)],
         "attack_type": ['clean','fgsm','pgd','cw']*2,
         "accuracy":[classical_acc_clean,classical_acc_fgsm,classical_acc_pgd,classical_acc_cw,hybrid_acc_clean,hybrid_acc_fgsm,hybrid_acc_pgd,hybrid_acc_cw],
         "precision":[classical_precision_clean,classical_precision_fgsm,classical_precision_pgd,classical_precision_cw,hybrid_precision_clean,hybrid_precision_fgsm,hybrid_precision_pgd,hybrid_precision_cw],
@@ -135,8 +140,8 @@ def mnist_pipeline(classical_model, hybrid_model, epsilon=0.01, maximum_iteratio
     robustness_dataframe = pd.DataFrame(robustness_data)
     #Creating Dataframe for Transferability Data
     transferability_data = {
-        "CNN_Donor_ID":[generate_sha3_256_hash(classical_model.summary())]*3 + [generate_sha3_256_hash(hybrid_model.summary())]*3,
-        "CNN_Recipient_ID":[generate_sha3_256_hash(hybrid_model.summary())]*3 + [generate_sha3_256_hash(classical_model.summary())]*3,
+        "CNN_Donor_ID":[generate_sha3_256_hash(classical_model)]*3 + [generate_sha3_256_hash(hybrid_model)]*3,
+        "CNN_Recipient_ID":[generate_sha3_256_hash(hybrid_model)]*3 + [generate_sha3_256_hash(classical_model)]*3,
         "attack_type":['fgsm','pgd','cw']*2,
         "TSR":[ch_fgsm_tsr,ch_pgd_tsr,ch_cw_tsr,hc_fgsm_tsr,hc_pgd_tsr,hc_cw_tsr],
         "acc_drop":[ch_fgsm_acc_drop,ch_pgd_acc_drop,ch_cw_acc_drop,hc_fgsm_acc_drop,hc_pgd_acc_drop,hc_cw_acc_drop]
