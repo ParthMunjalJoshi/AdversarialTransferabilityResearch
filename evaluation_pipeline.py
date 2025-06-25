@@ -10,6 +10,14 @@ from art.attacks.evasion import FastGradientMethod,ProjectedGradientDescent,Carl
 from sklearn.metrics import precision_score,f1_score,roc_auc_score
 from art.metrics import empirical_robustness
 import numpy as np
+import pandas as pd
+import hashlib
+
+#Generates hash for given string
+def generate_sha3_256_hash(input_string):
+    sha3_256_object = hashlib.sha3_256()
+    sha3_256_object.update(input_string.encode('utf-8'))
+    return sha3_256_object.hexdigest()
 
 #loads and returns test-set from MNIST dataset of given subset size
 def load_mnist_testset(subset_size):
@@ -62,10 +70,9 @@ def generate_pert(classifier,x_pgd,x_cw,x_test):
 #Using weighted avg for precision,f1,auc-roc as well as OneVsRest strategy for auc-roc this is done to extend these to multi-class classification
 def evaluate_model(classifier,x_test,y_test):
     preds = classifier.predict(x_test)
-    label = np.argmax(y_test)
-    acc = np.mean(np.argmax(preds, axis=1) == label)
-    precision = precision_score(label, np.argmax(preds, axis=1), average='weighted')
-    f1 = f1_score(label, np.argmax(preds, axis=1), average='weighted')
+    acc = np.mean(np.argmax(preds, axis=1) == np.argmax(y_test,axis=1))
+    precision = precision_score(np.argmax(y_test,axis=1), np.argmax(preds, axis=1), average='weighted')
+    f1 = f1_score(np.argmax(y_test,axis=1), np.argmax(preds, axis=1), average='weighted')
     auc = roc_auc_score(y_test, preds, multi_class='ovr', average='weighted')
     return (acc,precision,f1,auc)
 
@@ -114,75 +121,25 @@ def mnist_pipeline(classical_model, hybrid_model, epsilon=0.01, maximum_iteratio
     hc_pgd_tsr, hc_pgd_acc_drop = evaluate_transferability(classical_classifier,hybrid_x_pgd,y_test,classical_acc_pgd)
     #Measuring Hybrid -> Classical Transferability for CW attack
     hc_cw_tsr, hc_cw_acc_drop = evaluate_transferability(classical_classifier,hybrid_x_cw,y_test,classical_acc_cw)
-
-    print("-------------------Transferability Evaluations-------------------")
-    print(f"Classical -> Hybrid Transfer Success Rate (FGSM): {ch_fgsm_tsr}")
-    print(f"Classical -> Hybrid Transfer Success Rate (PGD): {ch_pgd_tsr}")
-    print(f"Classical -> Hybrid Transfer Success Rate (CW): {ch_cw_tsr}")
-    print("\n")
-    print(f"Classical -> Hybrid Accuracy Drop (FGSM): {ch_fgsm_acc_drop}")
-    print(f"Classical -> Hybrid Accuracy Drop (PGD): {ch_pgd_acc_drop}")
-    print(f"Classical -> Hybrid Accuracy Drop (CW): {ch_cw_acc_drop}")
-    print("\n")
-    print(f"Hybrid -> Classical  Transfer Success Rate (FGSM): {hc_fgsm_tsr}")
-    print(f"Hybrid -> Classical  Transfer Success Rate (PGD): {hc_pgd_tsr}")
-    print(f"Hybrid -> Classical  Transfer Success Rate (CW): {hc_cw_tsr}")
-    print("\n")
-    print(f"Hybrid -> Classical  Accuracy Drop (FGSM): {hc_fgsm_acc_drop}")
-    print(f"Hybrid -> Classical  Accuracy Drop (PGD): {hc_pgd_acc_drop}")
-    print(f"Hybrid -> Classical  Accuracy Drop (CW): {hc_cw_acc_drop}")
-    print("\n")
-    print("\n")
-    print("-------------------Robustness Evaluations-------------------")
-    print("====================Classical Model:=======================")
-    print("Clean: ")
-    print(f"Accuracy: {classical_acc_clean}")
-    print(f"Precision: {classical_precision_clean}")
-    print(f"F1: {classical_f1_clean}")
-    print(f"ROC_AUC: {classical_auc_clean}")
-    print("FGSM: ")
-    print(f"Accuracy: {classical_acc_fgsm}")
-    print(f"Precision: {classical_precision_fgsm}")
-    print(f"F1: {classical_f1_fgsm}")
-    print(f"ROC_AUC: {classical_auc_fgsm}")
-    print("PGD: ")
-    print(f"Accuracy: {classical_acc_pgd}")
-    print(f"Precision: {classical_precision_pgd}")
-    print(f"F1: {classical_f1_pgd}")
-    print(f"ROC_AUC: {classical_auc_pgd}")
-    print("Carlini-Wagner: ")
-    print(f"Accuracy: {classical_acc_cw}")
-    print(f"Precision: {classical_precision_cw}")
-    print(f"F1: {classical_f1_cw}")
-    print(f"ROC_AUC: {classical_auc_cw}")
-    print("\n")
-    print("====================Hybrid Model:=======================")
-    print("Clean: ")
-    print(f"Accuracy: {hybrid_acc_clean}")
-    print(f"Precision: {hybrid_precision_clean}")
-    print(f"F1: {hybrid_f1_clean}")
-    print(f"ROC_AUC: {hybrid_auc_clean}")
-    print("FGSM: ")
-    print(f"Accuracy: {hybrid_acc_fgsm}")
-    print(f"Precision: {hybrid_precision_fgsm}")
-    print(f"F1: {hybrid_f1_fgsm}")
-    print(f"ROC_AUC: {hybrid_auc_fgsm}")
-    print("PGD: ")
-    print(f"Accuracy: {hybrid_acc_pgd}")
-    print(f"Precision: {hybrid_precision_pgd}")
-    print(f"F1: {hybrid_f1_pgd}")
-    print(f"ROC_AUC: {hybrid_auc_pgd}")
-    print("Carlini-Wagner: ")
-    print(f"Accuracy: {hybrid_acc_cw}")
-    print(f"Precision: {hybrid_precision_cw}")
-    print(f"F1: {hybrid_f1_cw}")
-    print(f"ROC_AUC: {hybrid_auc_cw}")
-    print("-------------------Perturbations-------------------")
-    print("====================Classical Model:=======================")
-    print(f"Minimun certified perturbation size fgsm: {classical_min_pert_fgsm}")
-    print(f"Mean perturbation size fgsm: {classical_avg_pert_pgd}")
-    print(f"Mean perturbation size fgsm: {classical_avg_pert_cw}")
-    print("====================Hybrid Model:=======================")
-    print(f"Minimun certified perturbation size fgsm: {hybrid_min_pert_fgsm}")
-    print(f"Mean perturbation size fgsm: {hybrid_avg_pert_pgd}")
-    print(f"Mean perturbation size fgsm: {hybrid_avg_pert_cw}")
+    #Creating Dataframe for Robustness Data
+    robustness_data = {
+        "CNN_ID": 4*[generate_sha3_256_hash(classical_model.summary())]+4*[generate_sha3_256_hash(hybrid_model.summary())],
+        "attack_type": ['clean','fgsm','pgd','cw']*2,
+        "accuracy":[classical_acc_clean,classical_acc_fgsm,classical_acc_pgd,classical_acc_cw,hybrid_acc_clean,hybrid_acc_fgsm,hybrid_acc_pgd,hybrid_acc_cw],
+        "precision":[classical_precision_clean,classical_precision_fgsm,classical_precision_pgd,classical_precision_cw,hybrid_precision_clean,hybrid_precision_fgsm,hybrid_precision_pgd,hybrid_precision_cw],
+        "f1_score":[classical_f1_clean,classical_f1_fgsm,classical_f1_pgd,classical_f1_cw,hybrid_f1_clean,hybrid_f1_fgsm,hybrid_f1_pgd,hybrid_f1_cw],
+        "auc_roc":[classical_auc_clean,classical_auc_fgsm,classical_auc_pgd,classical_auc_cw,hybrid_auc_clean,hybrid_auc_fgsm,hybrid_auc_pgd,hybrid_auc_cw],
+        "perturbation_type":['null','min','avg','avg']*2,
+        "perturbation_size":[None,classical_min_pert_fgsm,classical_avg_pert_pgd,classical_avg_pert_cw,None,hybrid_min_pert_fgsm,hybrid_avg_pert_pgd,hybrid_avg_pert_cw]
+    }
+    robustness_dataframe = pd.DataFrame(robustness_data)
+    #Creating Dataframe for Transferability Data
+    transferability_data = {
+        "CNN_Donor_ID":[generate_sha3_256_hash(classical_model.summary())]*3 + [generate_sha3_256_hash(hybrid_model.summary())]*3,
+        "CNN_Recipient_ID":[generate_sha3_256_hash(hybrid_model.summary())]*3 + [generate_sha3_256_hash(classical_model.summary())]*3,
+        "attack_type":['fgsm','pgd','cw']*2,
+        "TSR":[ch_fgsm_tsr,ch_pgd_tsr,ch_cw_tsr,hc_fgsm_tsr,hc_pgd_tsr,hc_cw_tsr],
+        "acc_drop":[ch_fgsm_acc_drop,ch_pgd_acc_drop,ch_cw_acc_drop,hc_fgsm_acc_drop,hc_pgd_acc_drop,hc_cw_acc_drop]
+    }
+    transferability_dataframe = pd.DataFrame(transferability_data)
+    return robustness_data,transferability_data
