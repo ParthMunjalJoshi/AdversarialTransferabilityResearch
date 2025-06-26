@@ -1,5 +1,5 @@
 """
-The aim of this pipeline is to streamline the process of evaluating adversarial robustness and transferability
+The Aim of this pipeline is to streamline the process of evaluating adversarial robustness and transferability
 between a pair of models by extracting key metrics and storing them in a dataframe.
 """
 #Dependancies
@@ -137,6 +137,7 @@ def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maxi
             all_accuracies.append(metrics[0])
             robustness_data.append([hash_value,attacks[idx]]+list(metrics)+[perts[idx],perturbation])
     robustness_dataframe = pd.DataFrame(robustness_data,columns=["CNN_ID","attack_type","acc","precision","f1","auc-roc","pert_type","pert_size"])
+    #Measuring Transferability
     transfer_data = []
     for i, attack in enumerate(attacks[1:]):
         metrics = evaluate_transferability(classifiers[1], all_adversarial_examples[0][i+1], y_test, all_accuracies[5+i])
@@ -144,5 +145,5 @@ def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maxi
         metrics2 = evaluate_transferability(classifiers[0], all_adversarial_examples[1][i+1], y_test, all_accuracies[1+i])
         transfer_data.append([hashs_set[1], hashs_set[0], attack]+list(metrics2))
     transfer_dataframe = pd.DataFrame(transfer_data,columns=["Donor_ID","Recipient_ID","attack_type","TSR","acc_drop"])
-    return robustness_dataframe,transfer_dataframe
+    return (robustness_dataframe,transfer_dataframe)
     
