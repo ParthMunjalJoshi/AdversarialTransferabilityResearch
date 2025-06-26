@@ -16,9 +16,6 @@ import os
 
 #Generates hash for given model
 def generate_sha3_256_hash(model):
-    """
-    Generates a sha3 256bit hash of model to serve as ID.
-    """
     filepath = "tmp/temp.weights.h5"
     sha256_hash = hashlib.sha3_256()
     model.save_weights(filepath)
@@ -26,17 +23,11 @@ def generate_sha3_256_hash(model):
         # Read and update hash string value in chunks
         for byte_block in iter(lambda: f.read(4096), b""):
             sha256_hash.update(byte_block)
-    try:
-        os.remove(filepath)
-    except Exception:
-        raise PermissionError
+    os.remove(filepath)
     return sha256_hash.hexdigest()
 
 #Common preprocessing functions encapsulated to reduce redundancy
 def preprocess_dataset(x_test,y_test,shape,n_classes,subset_size,normalize_flag=True):
-    """
-    Normalizes, Resizes images and converts labels to one-hot encoding. Clips dataset to subset size.
-    """
     if normalize_flag:
         x_test = x_test.astype('float32') / 255.0             #Normalize
     x_test = x_test.reshape(shape)                            #Reshape
@@ -47,41 +38,23 @@ def preprocess_dataset(x_test,y_test,shape,n_classes,subset_size,normalize_flag=
 
 #loads and returns test-set from MNIST dataset of given subset size
 def load_mnist_testset(subset_size):
-    """
-    Loading the MNIST dataset.
-    """
     (_, _), (x_test, y_test) = keras.datasets.mnist.load_data()
     x_test,y_test = preprocess_dataset(x_test,y_test,(-1,28,28,1),10,subset_size,True)
-    dataset_details = {
-        "n_classes":10,
-        "shape":(28, 28, 1),
-        "vrange":(0.0, 1.0),
-    }
+    dataset_details = {"n_classes":10,"shape":(28, 28, 1),"vrange":(0.0, 1.0)}
     return (dataset_details,x_test,y_test)
 
 #loads and returns test-set from Fashion-MNIST dataset of given subset size
 def load_fmnist_testset(subset_size):
-    """
-    Loading the Fashion-MNIST dataset.
-    """
     (_, _), (x_test, y_test) = keras.datasets.fashion_mnist.load_data()
     x_test,y_test = preprocess_dataset(x_test,y_test,(-1,28,28,1),10,subset_size,True)
-    dataset_details = {
-        "n_classes":10,
-        "shape":(28, 28, 1),
-        "vrange":(0.0, 1.0),
-    }
+    dataset_details = {"n_classes":10,"shape":(28, 28, 1),"vrange":(0.0, 1.0)}
     return (dataset_details,x_test,y_test)
 
 ##loads and returns test-set from Cifar-10 dataset of given subset size
 def load_cifar10_testset(subset_size):
     (_, _), (x_test, y_test) = keras.datasets.cifar10.load_data()
     x_test,y_test = preprocess_dataset(x_test,y_test,(-1,32,32,3),10,subset_size,True)
-    dataset_details = {
-        "n_classes":10,
-        "shape":(32, 32, 3),
-        "vrange":(0.0, 1.0),
-    }
+    dataset_details = {"n_classes":10,"shape":(32, 32, 3),"vrange":(0.0, 1.0)}
     return (dataset_details,x_test,y_test)
 
 #Helper Function to create ART Classifiers
@@ -97,31 +70,17 @@ def classifier_helper(model,dataset_details):
 
 #returns classifier for given models
 def create_ART_classifiers(classical_model, hybrid_model,dataset_details):
-    """
-    Creates ART classifers for given Tensorflow+keras models.
-    """
-    classical_classifier,hybrid_classifier = classifier_helper(classical_model,dataset_details), classifier_helper(hybrid_model,dataset_details)
-    return (classical_classifier,hybrid_classifier)
+    return (classifier_helper(classical_model,dataset_details), classifier_helper(hybrid_model,dataset_details))
 
 #Generate 3-Adversarial Attacks on model
 def generate_adversarial_attacks(classifier,x_test,epsilon=0.01,maximum_iterations=40):
-    """
-    Generates adversarial test samples on x_test wrt. classifier for FGSM,PGD and CW attacks.
-    """
     fgsm = FastGradientMethod(estimator=classifier, eps=epsilon)
-    x_fgsm = fgsm.generate(x=x_test)
     pgd = ProjectedGradientDescent(estimator=classifier, eps=epsilon, eps_step=(2 * epsilon) / maximum_iterations, max_iter=maximum_iterations, batch_size=32, verbose=True)
-    x_pgd = pgd.generate(x=x_test)
-    classical_cw = CarliniL2Method(classifier=classifier, targeted=False, learning_rate=0.01, max_iter=maximum_iterations, binary_search_steps=5, confidence=0.0, initial_const=0.01)
-    x_cw = classical_cw.generate(x=x_test)
-    return (x_fgsm,x_pgd,x_cw)
+    cw = CarliniL2Method(classifier=classifier, targeted=False, learning_rate=0.01, max_iter=maximum_iterations, binary_search_steps=5, confidence=0.0, initial_const=0.01)
+    return (fgsm.generate(x_test),pgd.generate(x_test),cw.generate(x_test))
 
 #Generate Min/Mean Perturbation size for model
 def generate_pert(classifier,x_pgd,x_cw,x_test):
-    """
-    Generates certified minimum perturbation size for FGSM attack (non-iterative) and Average perturbation size for iterative attacks
-    We can fine-tune the attack values using these details.
-    """
     min_perturbation_fgsm = empirical_robustness(classifier=classifier, x=x_test, attack_name="fgsm", attack_params={"eps": 0.1})
     pgd_perturbations = np.linalg.norm((x_pgd - x_test).reshape(len(x_test), -1), axis=1)
     avg_pgd_perturbation = np.mean(pgd_perturbations)
@@ -132,11 +91,6 @@ def generate_pert(classifier,x_pgd,x_cw,x_test):
 #Evaluate model for a specific attack
 #Using weighted avg for precision,f1,auc-roc as well as OneVsRest strategy for auc-roc this is done to extend these to multi-class classification
 def evaluate_model(classifier,x_test,y_test):
-    """
-    Evaluates model robustness and returns acc,precision,f1-score,auc-roc for a specified adversarial set
-    precision,f1-score and auc-roc use weighted average for conversion to multi-class classification metric
-    auc-roc uses OvR (One vs Rest) strategyto break multi-class scenario to binary class analogue.
-    """
     preds = classifier.predict(x_test)
     acc = np.mean(np.argmax(preds, axis=1) == np.argmax(y_test,axis=1))
     precision = precision_score(np.argmax(y_test,axis=1), np.argmax(preds, axis=1), average='weighted', zero_division=0)
@@ -146,9 +100,6 @@ def evaluate_model(classifier,x_test,y_test):
 
 #Evaluate transferability for particular attack
 def evaluate_transferability(classifier,x_test_cross,y_test,base_acc_atk):
-    """
-    Evaluates adversarial transferability and returns Transfer Success Rate and Accuracy Drop.
-    """
     preds = classifier.predict(x_test_cross)
     acc = np.mean(np.argmax(preds, axis=1) == np.argmax(y_test,axis=1))
     TSR = 1 - acc
@@ -157,9 +108,6 @@ def evaluate_transferability(classifier,x_test_cross,y_test,base_acc_atk):
 
 #Load Test set from dataset according to name of apt size
 def load_testset(name,size):
-    """
-    calls helper fxn based on name of attack.
-    """
     if name == 'mnist':
         return load_mnist_testset(size)
     elif name == 'fmnist':
@@ -167,8 +115,7 @@ def load_testset(name,size):
     elif name =='cifar10':
         return load_cifar10_testset(size)
     else:
-        print("Dataset Not Supported")
-        raise ValueError
+        raise ValueError("Dataset Not Supported")
 
 #Pipeline for complete evaluation of two models trained on the given dataset
 def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maximum_iterations=40, subset_size=1000):
@@ -194,14 +141,12 @@ def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maxi
     #Measuring Carlini-Wagner robustness metrics
     classical_acc_cw,classical_precision_cw,classical_f1_cw,classical_auc_cw = evaluate_model(classical_classifier,classical_x_cw,y_test)
     hybrid_acc_cw,hybrid_precision_cw,hybrid_f1_cw,hybrid_auc_cw = evaluate_model(hybrid_classifier,hybrid_x_cw,y_test)
-
     #Measuring Classical -> Hybrid Transferability for FGSM attack
     ch_fgsm_tsr, ch_fgsm_acc_drop = evaluate_transferability(hybrid_classifier,classical_x_fgsm,y_test,hybrid_acc_fgsm)
     #Measuring Classical -> Hybrid Transferability for PGD attack
     ch_pgd_tsr, ch_pgd_acc_drop = evaluate_transferability(hybrid_classifier,classical_x_pgd,y_test,hybrid_acc_pgd)
     #Measuring Classical -> Hybrid Transferability for CW attack
     ch_cw_tsr, ch_cw_acc_drop = evaluate_transferability(hybrid_classifier,classical_x_cw,y_test,hybrid_acc_cw)
-
     #Measuring Hybrid -> Classical Transferability for FGSM attack
     hc_fgsm_tsr, hc_fgsm_acc_drop = evaluate_transferability(classical_classifier,hybrid_x_fgsm,y_test,classical_acc_fgsm)
     #Measuring Hybrid -> Classical Transferability for PGD attack
