@@ -21,7 +21,7 @@ def generate_sha3_256_hash(model):
     """
     filepath = "tmp/temp.weights.h5"
     sha256_hash = hashlib.sha3_256()
-    model.save(filepath)
+    model.save_weights(filepath)
     with open(filepath, "rb") as f:
         # Read and update hash string value in chunks
         for byte_block in iter(lambda: f.read(4096), b""):
@@ -69,6 +69,17 @@ def load_fmnist_testset(subset_size):
     dataset_details = {
         "n_classes":10,
         "shape":(28, 28, 1),
+        "vrange":(0.0, 1.0),
+    }
+    return (dataset_details,x_test,y_test)
+
+##loads and returns test-set from Cifar-10 dataset of given subset size
+def load_cifar10_testset(subset_size):
+    (_, _), (x_test, y_test) = keras.datasets.cifar10.load_data()
+    x_test,y_test = preprocess_dataset(x_test,y_test,(-1,32,32,3),10,subset_size,True)
+    dataset_details = {
+        "n_classes":10,
+        "shape":(32, 32, 3),
         "vrange":(0.0, 1.0),
     }
     return (dataset_details,x_test,y_test)
@@ -128,8 +139,8 @@ def evaluate_model(classifier,x_test,y_test):
     """
     preds = classifier.predict(x_test)
     acc = np.mean(np.argmax(preds, axis=1) == np.argmax(y_test,axis=1))
-    precision = precision_score(np.argmax(y_test,axis=1), np.argmax(preds, axis=1), average='weighted')
-    f1 = f1_score(np.argmax(y_test,axis=1), np.argmax(preds, axis=1), average='weighted')
+    precision = precision_score(np.argmax(y_test,axis=1), np.argmax(preds, axis=1), average='weighted', zero_division=0)
+    f1 = f1_score(np.argmax(y_test,axis=1), np.argmax(preds, axis=1), average='weighted', zero_division=0)
     auc = roc_auc_score(y_test, preds, multi_class='ovr', average='weighted')
     return (acc,precision,f1,auc)
 
@@ -153,6 +164,8 @@ def load_testset(name,size):
         return load_mnist_testset(size)
     elif name == 'fmnist':
         return load_fmnist_testset(size)
+    elif name =='cifar10':
+        return load_cifar10_testset(size)
     else:
         print("Dataset Not Supported")
         raise ValueError
