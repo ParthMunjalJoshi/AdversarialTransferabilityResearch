@@ -13,6 +13,38 @@ import numpy as np
 import pandas as pd
 import hashlib
 import os
+import pickle
+
+memo_file_path = 'lib/memo.pkl'
+
+#Load db from pickle_file
+def load_db():
+    db = {}
+    if os.path.exists(memo_file_path):
+        with open(memo_file_path, 'rb') as dbfile:
+            db = pickle.load(dbfile)
+    else:
+        os.makedirs(os.path.dirname(memo_file_path), exist_ok=True)
+    return (memo_file_path,db)
+
+#Checks if model is already evaluated
+def check_redundancy(hash):
+    _,db = load_db()
+    return (hash in db)
+
+#Pulls model adversarial examples from storage
+def load_from_memo(hash_value):
+    _,db = load_db()
+    return db[hash_value]
+    
+
+#Stores adversarial examples of model in a dump file
+def store_adv_examples(hash_value,adv_examples):
+    memo_file_path,db = load_db()
+    db[hash_value] = adv_examples   
+    with open(memo_file_path, 'wb') as dbfile:
+        pickle.dump(db, dbfile)        
+
 
 #Generates hash for given model
 def generate_sha3_256_hash(model):
@@ -50,7 +82,7 @@ def load_fmnist_testset(subset_size):
     dataset_details = {"n_classes":10,"shape":(28, 28, 1),"vrange":(0.0, 1.0)}
     return (dataset_details,x_test,y_test)
 
-##loads and returns test-set from Cifar-10 dataset of given subset size
+#loads and returns test-set from Cifar-10 dataset of given subset size
 def load_cifar10_testset(subset_size):
     (_, _), (x_test, y_test) = keras.datasets.cifar10.load_data()
     x_test,y_test = preprocess_dataset(x_test,y_test,(-1,32,32,3),10,subset_size,True)
@@ -75,7 +107,7 @@ def create_ART_classifiers(classical_model, hybrid_model,dataset_details):
 #Generate Adversarial Attacks on model
 def generate_adversarial_attacks(classifier,x_test,epsilon=0.01,maximum_iterations=40):
     fgsm = FastGradientMethod(estimator=classifier, eps=epsilon)
-    pgd = ProjectedGradientDescent(estimator=classifier, eps=epsilon, eps_step=(2 * epsilon) / maximum_iterations, max_iter=maximum_iterations, batch_size=32, verbose=True)
+    pgd = ProjectedGradientDescent(estimator=classifier, eps=epsilon, eps_step=(2 * epsilon)/maximum_iterations, max_iter=maximum_iterations, batch_size=32, verbose=True)
     cw = CarliniL2Method(classifier=classifier, targeted=False, learning_rate=0.01, max_iter=maximum_iterations, binary_search_steps=5, confidence=0.0, initial_const=0.01)
     return (x_test,fgsm.generate(x_test),pgd.generate(x_test),cw.generate(x_test))
 
@@ -129,13 +161,19 @@ def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maxi
     for classifier in classifiers:
         hash_value = generate_sha3_256_hash(classifier.model)
         hashs_set.append(hash_value)
-        adv_examples = generate_adversarial_attacks(classifier,x_test,epsilon,maximum_iterations)
+        flag = check_redundancy(hash_value)
+        if flag:
+            adv_examples = load_from_memo(hash_value)
+        else:
+            adv_examples = generate_adversarial_attacks(classifier,x_test,epsilon,maximum_iterations)
+            store_adv_examples(hash_value,adv_examples)
         all_adversarial_examples.append(adv_examples)
         perturbations = generate_pert(classifier,adv_examples[2],adv_examples[3],x_test)
         for idx,(adv_example,perturbation) in enumerate(zip(adv_examples,perturbations)):
             metrics = evaluate_model(classifier,adv_example,y_test)
             all_accuracies.append(metrics[0])
-            robustness_data.append([hash_value,attacks[idx]]+list(metrics)+[perts[idx],perturbation])
+            if not flag:
+                robustness_data.append([hash_value,attacks[idx]]+list(metrics)+[perts[idx],perturbation])
     robustness_dataframe = pd.DataFrame(robustness_data,columns=["CNN_ID","attack_type","acc","precision","f1","auc-roc","pert_type","pert_size"])
     #Measuring Transferability
     transfer_data = []
