@@ -2,9 +2,9 @@ import tensorflow as tf
 from tensorflow import keras
 from keras.models import Model
 from keras.layers import Input, Conv2D, Activation, MaxPooling2D, Flatten, Dense, concatenate, BatchNormalization
-import entanglement_layer as el
-import entanglement_circuit as ec
-import entanglement_strategies as es
+import _entanglement_layer as el
+import _entanglement_circuit as ec
+import _entanglement_strategies as es
 
 def retrieve_entg(n_qubits,depth,entanglement_details_list):
     entg = [[],[]]

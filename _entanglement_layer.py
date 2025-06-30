@@ -1,5 +1,5 @@
 import tensorflow as tf
-import entanglement_circuit as ec
+import _entanglement_circuit as ec
 
 class EntanglementKerasLayer(tf.keras.layers.Layer):
     def __init__(self, qnode, weight_shapes, output_dim,entg,embedded_rotation="X",depth=3,**kwargs):
