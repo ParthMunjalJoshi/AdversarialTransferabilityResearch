@@ -41,11 +41,11 @@ def retrieve_entg(n_qubits,depth,entanglement_details_list):
             entg[1].append((n_qubits,False,i))
     return entg_flag,entg
 
-def entanglement_model_factory(n_qubits,num_parallel_filters,depth,entanglement_details_list):
+def entanglement_model_factory(shape,n_qubits,num_parallel_filters,depth,entanglement_details_list):
     entg_flag,entanglement_details = retrieve_entg(n_qubits,depth,entanglement_details_list)
     output_dim_per_filter = n_qubits
     weights = {"weights":(depth,3,n_qubits)}
-    inputs = Input(shape=(28, 28, 1), name="input_image")
+    inputs = Input(shape=shape, name="input_image")
 
     x = Conv2D(16, (5, 5), padding="same", name="conv2d_1")(inputs)
     x = BatchNormalization(name="batch_norm_1")(x) 
