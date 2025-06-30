@@ -3,6 +3,9 @@ import pennylane as qml
 def get_fxn(cnot_flag):
     return  qml.CNOT if cnot_flag else qml.CZ
 
+def no_entanglement():
+    pass
+
 def linear_entanglement(n_qubits,cnot_flag):
     fxn = get_fxn(cnot_flag)
     for i in range(n_qubits-1):
