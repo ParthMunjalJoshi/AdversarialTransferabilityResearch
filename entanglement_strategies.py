@@ -27,6 +27,3 @@ def staggered_entanglement(n_qubits,cnot_flag,layers_done):
     else:
         for i in range(1,n_qubits-1,2):
             fxn(wires=[i,i+1])
-    
-    
-

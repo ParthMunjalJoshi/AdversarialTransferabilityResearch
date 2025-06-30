@@ -1,8 +1,8 @@
 import tensorflow as tf
 import entanglement_circuit as ec
 
-class QuantumKerasLayer(tf.keras.layers.Layer):
-    def __init__(self, qnode, weight_shapes, output_dim,entg,embedded_rotation="Z",depth=3,**kwargs):
+class EntanglementKerasLayer(tf.keras.layers.Layer):
+    def __init__(self, qnode, weight_shapes, output_dim,entg,embedded_rotation="X",depth=3,**kwargs):
         super().__init__(**kwargs)
         self._qnode_name = qnode.__name__
         self._qnode_device_name = qnode.device.name
@@ -11,7 +11,7 @@ class QuantumKerasLayer(tf.keras.layers.Layer):
         self.weight_shapes = weight_shapes
         self.output_dim = output_dim
         self.entanglement_info = entg
-        self.init_embed = embedded_rotation
+        self.init_embed_rot = embedded_rotation
         self.depth = depth
         if self.qnode.interface != "tf":
             self.qnode.interface = "tf"
@@ -29,7 +29,7 @@ class QuantumKerasLayer(tf.keras.layers.Layer):
         super().build(input_shape)
 
     def call(self, inputs):
-        results = self.qnode(inputs, self.qnode_weights,self.entanglement_info,self.init_embed,self.depth)
+        results = self.qnode(inputs, self.qnode_weights,self.entanglement_info,self.init_embed_rot,self.depth)
         if isinstance(results, (list, tuple)):
             return tf.stack(results, axis=-1)
         return results
@@ -46,7 +46,7 @@ class QuantumKerasLayer(tf.keras.layers.Layer):
             'output_dim': self.output_dim,
             'entanglement_info': self.entanglement_info,
             'ckt_depth':self.depth,
-            'angle_init':self.init_embed
+            'angle_init':self.init_embed_rot
         })
         return config
 
