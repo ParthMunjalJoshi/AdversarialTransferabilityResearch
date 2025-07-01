@@ -12,12 +12,13 @@ def append_to_db(path_csv,df):
 
 def main():
     datasets = ["mnist","fmnist","cifar10"]
-    index = {}
+    index = []
     shapes = {
         "mnist":(28,28,1),
         "fmnist":(28,28,1),
         "cifar10":(32,32,3)
     }
+    column_names = ["model","hash"]
     for dataset in datasets:
         classical_model = fac.entanglement_model_factory(shapes[dataset],5,1,1,["classical"])
         classical_model, _ = tm.train_model(classical_model,dataset)
@@ -38,9 +39,9 @@ def main():
             rb,tf = ep.eval_pipeline(dataset,classical_model,hybrid_model,0.01,40,1000)
             append_to_db("lib/robustness.csv",rb)
             append_to_db("lib/transferability.csv",tf)
-            index["CNN_"+dataset] = rb["CNN_ID"].unique()[0]
-            index["HQCNN_"+dataset+"_"+str(entanglement_strategy)] = rb["CNN_ID"].unique()[1]
-            index_df = pd.DataFrame(index)
+            index.append([["CNN_"+dataset] , rb["CNN_ID"].unique()[0]])
+            index.append([["HQCNN_"+dataset+"_"+str(entanglement_strategy)] , rb["CNN_ID"].unique()[1]])
+            index_df = pd.DataFrame(index,column=column_names)
             append_to_db("lib/index.csv",index_df)
 
 if __name__ == "__main__":
