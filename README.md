@@ -1,6 +1,6 @@
 # AdversarialTransferabilityResearch
 
-##### Initial-Abstract:
+##### Abstract:
  This project studies adversarial transferability between Classical Convolutional Neural Networks
  (CNNs) and Hybrid Quantum-Classical CNNs (HQCNNs) under gradient-based attacks, specifically
  FGSM and PGD. Adversarial examples are generated on one model type (classical or
@@ -9,6 +9,8 @@
  another. Understanding such transferability is critical in the context of grey-box and black-box
  attacks, where adversaries exploit shared weaknesses without full model access. The findings aim
  to inform the design of more robust and secure AI systems in the emerging quantum machine
- learning landscape
+ learning landscape.
 
- ** This readme will be updated in detail on conclusion of the research. **
+**CAUTION:** <span style="color:red">.Throughout this experiment number of qubits used was kept as 5, if you do wish to change it please don't forget to make this change at the top of _entanglement_circuit.py </span>
+
+ **This readme will be updated in detail on conclusion of the research.**
