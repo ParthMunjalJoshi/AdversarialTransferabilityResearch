@@ -11,6 +11,6 @@
  to inform the design of more robust and secure AI systems in the emerging quantum machine
  learning landscape.
 
-**CAUTION:** <span style="color:red">.Throughout this experiment number of qubits used was kept as 5, if you do wish to change it please don't forget to make this change at the top of _entanglement_circuit.py </span>
+:warning: **CAUTION:** :warning: Throughout this experiment number of qubits used was kept as 5, if you do wish to change it please don't forget to make this change at the top of _entanglement_circuit.py apart from entering the apt value in model_creation_factory.
 
  **This readme will be updated in detail on conclusion of the research.**
