@@ -51,14 +51,14 @@ def train_model(model,dataset):
     # Suppress all informational and warning messages
     tf.get_logger().setLevel(logging.ERROR) 
     #callbacks
-    early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=7, restore_best_weights=True)
     model_checkpoint = ModelCheckpoint('tmp/temp.keras', save_best_only=True, monitor='val_loss')
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=0.00001)
     history = model.fit(
         x_train, y_train,
         validation_data=(x_val, y_val),
         batch_size=32,
-        epochs=25,
+        epochs=50,
         verbose=1,
         callbacks=[early_stopping, model_checkpoint, reduce_lr]
     )
