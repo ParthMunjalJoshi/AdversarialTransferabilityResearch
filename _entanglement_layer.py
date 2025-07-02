@@ -2,7 +2,32 @@ import tensorflow as tf
 import _entanglement_circuit as ec
 
 class EntanglementKerasLayer(tf.keras.layers.Layer):
-    def __init__(self, qnode, weight_shapes, output_dim,entg,embedded_rotation="X",depth=3,**kwargs):
+    """Custom Keras layer integrating a quantum node (QNode) with TensorFlow.
+
+    This layer wraps a PennyLane QNode into a trainable Keras layer, allowing hybrid
+    quantum-classical model training using TensorFlow's backpropagation and optimizers.
+
+    Attributes:
+        qnode (callable): A PennyLane QNode expected to support TensorFlow interface.
+        weight_shapes (dict): Dictionary specifying the shape of each trainable parameter.
+        output_dim (int): Dimension of the output tensor.
+        entanglement_info (Any): Encodes the entanglement structure to be used in the QNode.
+        init_embed_rot (str): Initial rotation gate to apply to each qubit ('X', 'Y', or 'Z').
+        depth (int): Number of repeated entangling layers in the quantum circuit.
+    """
+
+    def __init__(self, qnode, weight_shapes, output_dim, entg, embedded_rotation="X", depth=3, **kwargs):
+        """Initializes the EntanglementKerasLayer.
+
+        Args:
+            qnode (callable): A PennyLane QNode using the 'tf' interface.
+            weight_shapes (dict): A dictionary of trainable parameter names and their shapes.
+            output_dim (int): The number of output features from the QNode.
+            entg (Any): Information defining the entanglement structure of the circuit.
+            embedded_rotation (str, optional): Initial embedding gate. Defaults to "X".
+            depth (int, optional): Depth of the entanglement layers. Defaults to 3.
+            **kwargs: Additional keyword arguments for base Keras Layer.
+        """
         super().__init__(**kwargs)
         self._qnode_name = qnode.__name__
         self._qnode_device_name = qnode.device.name
@@ -17,8 +42,13 @@ class EntanglementKerasLayer(tf.keras.layers.Layer):
             self.qnode.interface = "tf"
 
     def build(self, input_shape):
+        """Creates the trainable weights for the quantum node.
+
+        Args:
+            input_shape (TensorShape): Shape of the input tensor.
+        """
         self.qnode_weights = {}
-        for weight_name,shape in self.weight_shapes.items():
+        for weight_name, shape in self.weight_shapes.items():
             self.qnode_weights[weight_name] = self.add_weight(
                 name=weight_name,
                 shape=shape,
@@ -29,29 +59,60 @@ class EntanglementKerasLayer(tf.keras.layers.Layer):
         super().build(input_shape)
 
     def call(self, inputs):
-        results = self.qnode(inputs, self.qnode_weights,self.entanglement_info,self.init_embed_rot,self.depth)
+        """Executes the quantum circuit and returns its outputs.
+
+        Args:
+            inputs (tf.Tensor): Input tensor to be processed by the quantum circuit.
+
+        Returns:
+            tf.Tensor: Output tensor resulting from the QNode execution.
+        """
+        results = self.qnode(inputs, self.qnode_weights, self.entanglement_info, self.init_embed_rot, self.depth)
         if isinstance(results, (list, tuple)):
             return tf.stack(results, axis=-1)
         return results
 
-
     def compute_output_shape(self, input_shape):
+        """Computes the output shape of the layer.
+
+        Args:
+            input_shape (TensorShape): Shape of the input tensor.
+
+        Returns:
+            tuple: Output shape (batch_size, output_dim).
+        """
         return (input_shape[0], self.output_dim)
 
     def get_config(self):
+        """Returns the configuration of the layer for serialization.
+
+        Returns:
+            dict: Dictionary containing layer configuration.
+        """
         config = super().get_config()
         config.update({
             'qnode': self._qnode_name,
             'weight_shapes': self.weight_shapes,
             'output_dim': self.output_dim,
             'entanglement_info': self.entanglement_info,
-            'ckt_depth':self.depth,
-            'angle_init':self.init_embed_rot
+            'ckt_depth': self.depth,
+            'angle_init': self.init_embed_rot
         })
         return config
 
     @classmethod
     def from_config(cls, config):
+        """Creates a layer instance from a configuration dictionary.
+
+        Args:
+            config (dict): Configuration dictionary as produced by `get_config()`.
+
+        Returns:
+            EntanglementKerasLayer: A new instance of this class.
+
+        Raises:
+            ValueError: If the specified QNode function is not recognized.
+        """
         qnode_function_name = config.pop('qnode')
         if qnode_function_name == 'quantum_circuit':
             qnode_instance = ec.quantum_circuit

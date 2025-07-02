@@ -5,12 +5,30 @@ import os
 import pandas as pd
 
 def append_to_db(path_csv,df):
+    """Appends a DataFrame to a CSV file. If the file doesn't exist, creates it.
+
+    Args:
+        path_csv (str): Path to the CSV file.
+        df (pd.DataFrame): DataFrame to append.
+    """
     if not os.path.exists(path_csv):
         df.to_csv(path_csv, index=False)
     else:
         df.to_csv(path_csv, mode='a', header=False, index=False)
 
 def main():
+    """Main orchestration function for automated model evaluation.
+
+    For each dataset (MNIST, FMNIST, CIFAR-10), this function:
+    1. Trains a classical CNN model.
+    2. Iterates over multiple entanglement strategies.
+    3. Builds, trains, and evaluates corresponding HQCNN models.
+    4. Measures robustness and transferability using adversarial examples.
+    5. Appends results to persistent CSV files:
+        - `lib/robustness.csv`: Adversarial robustness metrics.
+        - `lib/transferability.csv`: Attack transfer metrics.
+        - `lib/index.csv`: Lookup for model names and their corresponding hashes.
+    """
     datasets = ["mnist","fmnist","cifar10"]
     index = []
     shapes = {
