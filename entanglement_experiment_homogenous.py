@@ -41,7 +41,7 @@ def main():
             append_to_db("lib/transferability.csv",tf)
             index.append([["CNN_"+dataset] , rb["CNN_ID"].unique()[0]])
             index.append([["HQCNN_"+dataset+"_"+str(entanglement_strategy)] , rb["CNN_ID"].unique()[1]])
-            index_df = pd.DataFrame(index,column=column_names)
+            index_df = pd.DataFrame(index,columns=column_names)
             append_to_db("lib/index.csv",index_df)
 
 if __name__ == "__main__":
