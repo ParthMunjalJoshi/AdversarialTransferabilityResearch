@@ -1,6 +1,6 @@
 # AdversarialTransferabilityResearch
 
- This project investigates the **adversarial transferability** of gradient-based attacks, specifically **Fast Gradient Sign Method (FGSM)** , **Projected Gradient Descent (PGD)** and **Carlini-Wagner (CW)**, between Classical Convolutional Neural Networks (CNNs) and Hybrid Quantum-Classical CNNs (HQCNNs), specifically in the context of entanglement strategies used in HQCNN.
+This project investigates the **adversarial transferability** of gradient-based attacks, specifically **Fast Gradient Sign Method (FGSM)**, **Projected Gradient Descent (PGD)**, and **Carlini-Wagner (CW)**, between Classical Convolutional Neural Networks (CNNs) and Hybrid Quantum-Classical CNNs (HQCNNs). This research focuses on the entanglement strategies used in HQCNNs.
 
  
 ## Project Overview
@@ -28,7 +28,7 @@ These are Ansatz using only one type of entanglement layer throughout the circui
 
 
   * Linear Entanglement:
-    In this strategy, we apply CNOT/CZ between neighboring qubits (N,N+1) pairs
+    In this strategy, we apply CNOT/CZ between neighboring qubits (N,N+1) pairs.
 
     ![plot](./lib/strat/linear_entg.png)
 
@@ -61,11 +61,13 @@ This shall be passed to subsequent modules for model creation, model training an
 ![plot](./lib/EntglModelFactory.png)
 
 This module creates a HQCNN/Classical model based on parameters passed to it. For exact specifics refer to the files:
-  * entanglement_model_factory.py
-  * _entanglement_circuit.py
-  * _entanglement_layer.py
 
-:warning: **CAUTION** :warning: Throughout this experiment number of qubits used was kept as 5, if you do wish to change it please  make this change in the helper module _entanglement_circuit.py apart from entering the apt value in model_creation_factory.
+  * entanglement\_model\_factory.py
+  * \_entanglement\_circuit.py
+  * \_entanglement\_layer.py
+
+:warning: **CAUTION** :warning: Throughout this experiment, the number of qubits used was kept at 5. If you wish to change it, please make this change in the helper module \_entanglement\_circuit.py, apart from entering the appropriate value in model\_creation\_factory.
+
 
 ### Model Training:
 
@@ -73,7 +75,8 @@ This module creates a HQCNN/Classical model based on parameters passed to it. Fo
 
 This module takes a model and a dataset and trains the model on that specific dataset. Training data is split 9:1 into training
 and validation data. Model is trained using the Adam Optimizer. For exact specifics refer to the file:
-  * training_module.py
+
+  * training\_module.py
 
 ### Model Evaluation:
 
@@ -85,13 +88,16 @@ The structure of the dataframes is given by:
 ![plot](./lib/Dataset_design.png)
 
 For exact specifics refer to the file:
-  * evaluation_pipeline.py
+
+  * evaluation\_pipeline.py
 
 ### Final Output:
 Running the experiment produces 3 useful csv files:
   * lib/index.csv:  contains model ID (hash) and architecture (entanglement strategy details)
   * lib/robustness.csv:  contains compiled robustness data
   * lib/transferability.csv: contains compiled transferability data
+
+---
 
 ## Getting Started
 
@@ -109,7 +115,9 @@ pip install -r requirements.txt
 ```
 
 ### Usage:
+```bash
 python entanglement_experiment_homogenous.py
+```
 
 ## Expected Outcomes
 The project aims to provide insights into:
