@@ -108,7 +108,7 @@ def train_model(model, dataset):
     tf.get_logger().setLevel(logging.ERROR)
 
     # Define callbacks
-    early_stopping = EarlyStopping(monitor='val_loss', patience=7, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
     model_checkpoint = ModelCheckpoint('tmp/temp.keras', save_best_only=True, monitor='val_loss')
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=1e-5)
     
