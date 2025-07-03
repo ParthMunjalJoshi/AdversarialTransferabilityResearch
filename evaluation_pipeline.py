@@ -31,20 +31,20 @@ def load_db():
     return (memo_file_path,db)
 
 #Checks if model is already evaluated
-def check_redundancy(hash):
+def check_redundancy(thash,dataset):
     """Checks whether a given model hash is already evaluated.
 
     Args:
-        hash (str): SHA3-256 hash of the model weights.
+        thash (str): SHA3-256 hash of the model weights.
 
     Returns:
         bool: True if the model has already been evaluated and cached.
     """
     _,db = load_db()
-    return (hash in db)
+    return ((dataset,thash) in db)
 
 #Pulls model adversarial examples from storage
-def load_from_memo(hash_value):
+def load_from_memo(hash_value,dataset):
     """Loads adversarial examples for a model from the memoization database.
 
     Args:
@@ -54,11 +54,11 @@ def load_from_memo(hash_value):
         Tuple[np.ndarray, ...]: Tuple of adversarial example arrays.
     """
     _,db = load_db()
-    return db[hash_value]
+    return db[(dataset,hash_value)]
     
 
 #Stores adversarial examples of model in a dump file
-def store_adv_examples(hash_value,adv_examples):
+def store_adv_examples(dataset,hash_value,adv_examples):
     """Stores adversarial examples in the memoization database.
 
     Args:
@@ -66,7 +66,7 @@ def store_adv_examples(hash_value,adv_examples):
         adv_examples (Tuple[np.ndarray, ...]): Generated adversarial examples to store.
     """
     memo_file_path,db = load_db()
-    db[hash_value] = adv_examples   
+    db[(dataset,hash_value)] = adv_examples   
     with open(memo_file_path, 'wb') as dbfile:
         pickle.dump(db, dbfile)        
 
@@ -334,12 +334,12 @@ def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maxi
     for classifier in classifiers:
         hash_value = generate_sha3_256_hash(classifier.model)
         hashs_set.append(hash_value)
-        flag = check_redundancy(hash_value)
+        flag = check_redundancy(hash_value,dataset_name)
         if flag:
-            adv_examples = load_from_memo(hash_value)
+            adv_examples = load_from_memo(hash_value,dataset_name)
         else:
             adv_examples = generate_adversarial_attacks(classifier,x_test,epsilon,maximum_iterations)
-            store_adv_examples(hash_value,adv_examples)
+            store_adv_examples(dataset_name,hash_value,adv_examples)
         all_adversarial_examples.append(adv_examples)
         if carlini_wagner_flag:
             perturbations = generate_pert(classifier,adv_examples[2],x_test,adv_examples[3])
