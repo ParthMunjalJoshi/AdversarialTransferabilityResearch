@@ -342,7 +342,7 @@ def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maxi
             store_adv_examples(hash_value,adv_examples)
         all_adversarial_examples.append(adv_examples)
         if carlini_wagner_flag:
-            perturbations = generate_pert(classifier,adv_examples[2],adv_examples[3],x_test)
+            perturbations = generate_pert(classifier,adv_examples[2],x_test,adv_examples[3])
         else:
             perturbations = generate_pert(classifier,adv_examples[2],x_test)
         for idx,(adv_example,perturbation) in enumerate(zip(adv_examples,perturbations)):
