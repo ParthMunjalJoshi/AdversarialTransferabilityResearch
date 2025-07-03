@@ -30,7 +30,6 @@ def main():
         - `lib/index.csv`: Lookup for model names and their corresponding hashes.
     """
     datasets = ["mnist","fmnist","cifar10"]
-    index = []
     shapes = {
         "mnist":(28,28,1),
         "fmnist":(28,28,1),
@@ -39,6 +38,7 @@ def main():
     column_names = ["model","hash"]
     os.makedirs("models", exist_ok=True)
     for dataset in datasets:
+        index = []
         classical_path = "models/classical_"+dataset+".keras" 
         if os.path.exists(classical_path):
             classical_model = tf.keras.models.load_model(classical_path)   
