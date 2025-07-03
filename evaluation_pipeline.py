@@ -228,7 +228,7 @@ def generate_pert(classifier,x_pgd,x_test,x_cw=None):
         x_test (np.ndarray): Original inputs.
 
     Returns:
-        Tuple[float, float, float, float]: Dummy (0), empirical robustness for FGSM, PGD perturbation, CW perturbation.
+        Tuple[float, float, float, float]: Dummy (0) {for mapping with clean}, empirical robustness for FGSM, PGD perturbation, CW perturbation.
     """
     min_perturbation_fgsm = empirical_robustness(classifier=classifier, x=x_test, attack_name="fgsm", attack_params={"eps": 0.1})
     avg_pgd_perturbation = np.mean(np.linalg.norm((x_pgd - x_test).reshape(len(x_test), -1), axis=1))
