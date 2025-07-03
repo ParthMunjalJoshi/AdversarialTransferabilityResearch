@@ -1,7 +1,5 @@
-"""
-The Aim of this pipeline is to streamline the process of evaluating adversarial robustness and transferability
-between a pair of models by extracting key metrics and storing them in a dataframe.
-"""
+#Change this to true if you have the computational resources to carry out cw attacks
+carlini_wagner_flag = False 
 #Dependancies
 import tensorflow as tf
 from tensorflow import keras 
@@ -210,13 +208,14 @@ def generate_adversarial_attacks(classifier,x_test,epsilon=0.01,maximum_iteratio
     """
     fgsm = FastGradientMethod(estimator=classifier, eps=epsilon)
     pgd = ProjectedGradientDescent(estimator=classifier, eps=epsilon, eps_step=(2 * epsilon)/maximum_iterations, max_iter=maximum_iterations, batch_size=32, verbose=True)
-    #cw = CarliniL2Method(classifier=classifier, targeted=False, learning_rate=0.01, max_iter=maximum_iterations, binary_search_steps=5, confidence=0.0, initial_const=0.01)
-    #return (x_test,fgsm.generate(x_test),pgd.generate(x_test),cw.generate(x_test))
-    return(x_test,fgsm.generate(x_test),pgd.generate(x_test))
+    if carlini_wagner_flag:
+        cw = CarliniL2Method(classifier=classifier, targeted=False, learning_rate=0.01, max_iter=maximum_iterations, binary_search_steps=5, confidence=0.0, initial_const=0.01)
+        return (x_test,fgsm.generate(x_test),pgd.generate(x_test),cw.generate(x_test))
+    else:
+        return(x_test,fgsm.generate(x_test),pgd.generate(x_test))
 
 #Generate Min/Mean Perturbation size for model
-#def generate_pert(classifier,x_pgd,x_cw,x_test):
-def generate_pert(classifier,x_pgd,x_test):
+def generate_pert(classifier,x_pgd,x_test,x_cw=None):
     """Computes empirical robustness and average perturbation sizes.
 
     Args:
@@ -230,9 +229,11 @@ def generate_pert(classifier,x_pgd,x_test):
     """
     min_perturbation_fgsm = empirical_robustness(classifier=classifier, x=x_test, attack_name="fgsm", attack_params={"eps": 0.1})
     avg_pgd_perturbation = np.mean(np.linalg.norm((x_pgd - x_test).reshape(len(x_test), -1), axis=1))
-    #avg_cw_perturbation = np.mean(np.linalg.norm((x_cw - x_test).reshape(len(x_test), -1), axis=1))
-    #return (0,min_perturbation_fgsm,avg_pgd_perturbation,avg_cw_perturbation)
-    return (0, min_perturbation_fgsm, avg_pgd_perturbation)
+    if carlini_wagner_flag:
+        avg_cw_perturbation = np.mean(np.linalg.norm((x_cw - x_test).reshape(len(x_test), -1), axis=1))
+        return (0,min_perturbation_fgsm,avg_pgd_perturbation,avg_cw_perturbation)
+    else:
+        return (0, min_perturbation_fgsm, avg_pgd_perturbation)
 
 #Evaluate model for a specific attack.
 #Using weighted avg for precision,f1,auc-roc as well as OneVsRest strategy for auc-roc this is done to extend these to multi-class classification
@@ -323,10 +324,12 @@ def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maxi
     classifiers = create_ART_classifiers(classical_model, hybrid_model,dataset_details)
     #Measuring Robustness
     robustness_data = []
-    #attacks = ["clean","fgsm","pgd","cw"]
-    attacks = ["clean","fgsm","pgd"]
-    #perts = ["none","min","mean","mean"]
-    perts = ["none","min","mean"]
+    if carlini_wagner_flag:
+        attacks = ["clean","fgsm","pgd","cw"]
+        perts = ["none","min","mean","mean"]
+    else:
+        attacks = ["clean","fgsm","pgd"]
+        perts = ["none","min","mean"]    
     hashs_set, all_adversarial_examples, all_accuracies = [], [], [] 
     for classifier in classifiers:
         hash_value = generate_sha3_256_hash(classifier.model)
@@ -338,8 +341,10 @@ def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maxi
             adv_examples = generate_adversarial_attacks(classifier,x_test,epsilon,maximum_iterations)
             store_adv_examples(hash_value,adv_examples)
         all_adversarial_examples.append(adv_examples)
-        #perturbations = generate_pert(classifier,adv_examples[2],adv_examples[3],x_test)
-        perturbations = generate_pert(classifier,adv_examples[2],x_test)
+        if carlini_wagner_flag:
+            perturbations = generate_pert(classifier,adv_examples[2],adv_examples[3],x_test)
+        else:
+            perturbations = generate_pert(classifier,adv_examples[2],x_test)
         for idx,(adv_example,perturbation) in enumerate(zip(adv_examples,perturbations)):
             metrics = evaluate_model(classifier,adv_example,y_test)
             all_accuracies.append(metrics[0])

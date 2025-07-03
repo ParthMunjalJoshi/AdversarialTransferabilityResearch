@@ -83,6 +83,10 @@ and validation data. Model is trained using the Adam Optimizer. For exact specif
 ![plot](./lib/EvalPipe.png)
 
 This pipeline takes two models and calculates adversarial robustness and transferability metrics for them and returns dataframes.
+
+:warning: **CAUTION** :warning: By default Carlini-Wagner attacks are disabled in the pipeline as they are computationally 
+expensive. If you wish to include them you can do so by setting carlini_wagner_flag = True before running the experiment.
+
 The structure of the dataframes is given by:
 
 ![plot](./lib/Dataset_design.png)
