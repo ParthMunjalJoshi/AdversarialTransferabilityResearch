@@ -36,6 +36,7 @@ def check_redundancy(thash,dataset):
 
     Args:
         thash (str): SHA3-256 hash of the model weights.
+        dataset(str) : name of dataset
 
     Returns:
         bool: True if the model has already been evaluated and cached.
@@ -49,6 +50,7 @@ def load_from_memo(hash_value,dataset):
 
     Args:
         hash_value (str): SHA3-256 hash of the model.
+        dataset(str) : name of dataset
 
     Returns:
         Tuple[np.ndarray, ...]: Tuple of adversarial example arrays.
@@ -62,6 +64,7 @@ def store_adv_examples(dataset,hash_value,adv_examples):
     """Stores adversarial examples in the memoization database.
 
     Args:
+        dataset(str) : name of dataset
         hash_value (str): SHA3-256 hash of the model.
         adv_examples (Tuple[np.ndarray, ...]): Generated adversarial examples to store.
     """
