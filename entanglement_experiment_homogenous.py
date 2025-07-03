@@ -58,7 +58,8 @@ def main():
             ["staggeredz"]*3
         ]
         for entanglement_strategy in entanglement_strategies:
-            hybrid_path = "models/hybrid_"+dataset+str(entanglement_strategy)+".weights.h5"
+            strategy_name = "_".join(entanglement_strategy)
+            hybrid_path = f"models/hybrid_{dataset}_{strategy_name}.weights.h5"
             hybrid_model = fac.entanglement_model_factory(shapes[dataset],5,4,3,entanglement_strategy)
             if os.path.exists(hybrid_path):
                 hybrid_model.load_weights(hybrid_path,skip_mismatch=True)
