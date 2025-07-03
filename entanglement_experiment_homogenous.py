@@ -37,9 +37,11 @@ def main():
         "cifar10":(32,32,3)
     }
     column_names = ["model","hash"]
+    os.makedirs(os.path.dirname("models"), exist_ok=True)
     for dataset in datasets:
         classical_model = fac.entanglement_model_factory(shapes[dataset],5,1,1,["classical"])
         classical_model, _ = tm.train_model(classical_model,dataset)
+        classical_model.save("models/classical_"+dataset+".keras")
         entanglement_strategies = [
             ["none"]*3,
             ["linearx"]*3,
@@ -54,6 +56,7 @@ def main():
         for entanglement_strategy in entanglement_strategies:
             hybrid_model = fac.entanglement_model_factory(shapes[dataset],5,4,3,entanglement_strategy)
             hybrid_model, _ = tm.train_model(hybrid_model,dataset)
+            hybrid_model.save_weights("models/hybrid_"+dataset+entanglement_strategy+".weights.h5")
             rb,tf = ep.eval_pipeline(dataset,classical_model,hybrid_model,0.01,40,1000)
             append_to_db("lib/robustness.csv",rb)
             append_to_db("lib/transferability.csv",tf)
