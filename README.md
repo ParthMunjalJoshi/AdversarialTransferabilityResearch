@@ -24,13 +24,13 @@ These are Ansatz using only one type of entanglement layer throughout the circui
   * No entanglement:
     In this strategy, the PQC consists only of parametric phase gates and no entangling layers. 
 
-    ![plot](./lib/strat/no_entg.png)
+    ![plot](./lib/imgs/strat/no_entg.png)
 
 
   * Linear Entanglement:
     In this strategy, we apply CNOT/CZ between neighboring qubits (N,N+1) pairs.
 
-    ![plot](./lib/strat/linear_entg.png)
+    ![plot](./lib/imgs/strat/linear_entg.png)
 
   * Circular Entanglement:
     This is an extension to the linear entanglement strategy where the last qubit is linked with the first to complete the ring.
@@ -40,25 +40,25 @@ These are Ansatz using only one type of entanglement layer throughout the circui
   * Full Entanglement:
     In this strategy, there is a CNOT/CZ between every pair of qubits.
   
-    ![plot](./lib/strat/full_entg.png)   
+    ![plot](./lib/imgs/strat/full_entg.png)   
 
   * Staggered Entanglement:
     In this strategy, linking is done in layers or stages, typically by applying entangling gates to different non-overlapping, sets of qubits in sequential blocks of the circuit.
 
-    ![plot](./lib/strat/stag_entg.png) 
+    ![plot](./lib/imgs/strat/stag_entg.png) 
 
 Note: in the above illustrations we have used CNOT but CZ can also produce an entangling effect.
 
 ## Methodology
 
-![plot](./lib/EntanglementExperiment.png)
+![plot](./lib/imgs/EntanglementExperiment.png)
 
 The experiment shall generate lists describing entanglement layers in a defined model architecture.
 This shall be passed to subsequent modules for model creation, model training and evaluation.
 
 ### Model Creation:
 
-![plot](./lib/EntglModelFactory.png)
+![plot](./lib/imgs/EntglModelFactory.png)
 
 This module creates a HQCNN/Classical model based on parameters passed to it. For exact specifics refer to the files:
 
@@ -71,7 +71,7 @@ This module creates a HQCNN/Classical model based on parameters passed to it. Fo
 
 ### Model Training:
 
-![plot](./lib/TrainModule.png)
+![plot](./lib/imgs/TrainModule.png)
 
 This module takes a model and a dataset and trains the model on that specific dataset. Training data is split 9:1 into training
 and validation data. Model is trained using the Adam Optimizer. For exact specifics refer to the file:
@@ -80,7 +80,7 @@ and validation data. Model is trained using the Adam Optimizer. For exact specif
 
 ### Model Evaluation:
 
-![plot](./lib/EvalPipe.png)
+![plot](./lib/imgs/EvalPipe.png)
 
 This pipeline takes two models and calculates adversarial robustness and transferability metrics for them and returns dataframes.
 
@@ -90,7 +90,7 @@ before running the experiment.
 
 The structure of the dataframes is given by:
 
-![plot](./lib/Dataset_design.png)
+![plot](./lib/imgs/Dataset_design.png)
 
 For exact specifics refer to the file:
 
