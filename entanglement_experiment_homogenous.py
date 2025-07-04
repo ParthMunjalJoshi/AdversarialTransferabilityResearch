@@ -36,10 +36,10 @@ def main():
         "cifar10":(32,32,3)
     }
     column_names = ["model","hash"]
-    os.makedirs("models", exist_ok=True)
+    os.makedirs("lib/models", exist_ok=True)
     for dataset in datasets:
         index = []
-        classical_path = "models/classical_"+dataset+".keras" 
+        classical_path = "lib/models/classical_"+dataset+".keras" 
         if os.path.exists(classical_path):
             classical_model = tf.keras.models.load_model(classical_path)   
         else:
@@ -59,7 +59,7 @@ def main():
         ]
         for entanglement_strategy in entanglement_strategies:
             strategy_name = "_".join(entanglement_strategy)
-            hybrid_path = f"models/hybrid_{dataset}_{strategy_name}.weights.h5"
+            hybrid_path = f"lib/models/hybrid_{dataset}_{strategy_name}.weights.h5"
             hybrid_model = fac.entanglement_model_factory(shapes[dataset],5,4,3,entanglement_strategy)
             if os.path.exists(hybrid_path):
                 hybrid_model.load_weights(hybrid_path,skip_mismatch=True)
@@ -67,12 +67,12 @@ def main():
                 hybrid_model, _ = tm.train_model(hybrid_model,dataset)
                 hybrid_model.save_weights(hybrid_path)
             rb,tf = ep.eval_pipeline(dataset,classical_model,hybrid_model,0.01,40,1000)
-            append_to_db("lib/robustness.csv",rb)
-            append_to_db("lib/transferability.csv",tf)
+            append_to_db("lib/results/robustness.csv",rb)
+            append_to_db("lib/results/transferability.csv",tf)
             index.append(["CNN_"+dataset , rb["CNN_ID"].unique()[0]])
             index.append(["HQCNN_"+dataset+"_"+str(entanglement_strategy) , rb["CNN_ID"].unique()[1]])
         index_df = pd.DataFrame(index,columns=column_names)
-        append_to_db("lib/index.csv",index_df)
+        append_to_db("lib/results/index.csv",index_df)
 
 if __name__ == "__main__":
     main()
