@@ -13,7 +13,7 @@ import hashlib
 import os
 import pickle
 
-memo_file_path = 'lib/memo.pkl'
+memo_file_path = 'tmp/memo.pkl'
 
 #Load db from pickle_file
 def load_db():

@@ -35,7 +35,7 @@ These are Ansatz using only one type of entanglement layer throughout the circui
   * Circular Entanglement:
     This is an extension to the linear entanglement strategy where the last qubit is linked with the first to complete the ring.
 
-    ![plot](./lib/strat/circular_entg.png)    
+    ![plot](./lib/imgs/strat/circular_entg.png)    
 
   * Full Entanglement:
     In this strategy, there is a CNOT/CZ between every pair of qubits.
