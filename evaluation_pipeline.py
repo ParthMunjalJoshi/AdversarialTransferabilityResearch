@@ -12,7 +12,14 @@ import pandas as pd
 import hashlib
 import os
 import pickle
+import json
 
+with open('lib/expt_config.json', 'r') as f:
+    data = json.load(f)
+pgd_batch_size = data["adversarial_parameters"]["pgd_batch_size"]
+cw_binary_search_steps = data["adversarial_parameters"]["cw_binary_search_steps"]
+cw_init_const = data["adversarial_parameters"]["cw_init_const"]
+subset_size = data["adversarial_parameters"]["subset_size"]
 memo_file_path = 'tmp/memo.pkl'
 
 #Load db from pickle_file
@@ -197,7 +204,7 @@ def create_ART_classifiers(classical_model, hybrid_model,dataset_details):
     return (classifier_helper(classical_model,dataset_details), classifier_helper(hybrid_model,dataset_details))
 
 #Generate Adversarial Attacks on model
-def generate_adversarial_attacks(classifier,x_test,epsilon=0.01,maximum_iterations=40):
+def generate_adversarial_attacks(classifier,x_test,epsilon,maximum_iterations):
     """Generates adversarial examples using FGSM, PGD, and Carlini-Wagner attacks.
 
     Args:
@@ -210,9 +217,9 @@ def generate_adversarial_attacks(classifier,x_test,epsilon=0.01,maximum_iteratio
         Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: Clean, FGSM, PGD, and CW adversarial examples.
     """
     fgsm = FastGradientMethod(estimator=classifier, eps=epsilon)
-    pgd = ProjectedGradientDescent(estimator=classifier, eps=epsilon, eps_step=(2 * epsilon)/maximum_iterations, max_iter=maximum_iterations, batch_size=32, verbose=True)
+    pgd = ProjectedGradientDescent(estimator=classifier, eps=epsilon, eps_step=(2 * epsilon)/maximum_iterations, max_iter=maximum_iterations, batch_size=pgd_batch_size, verbose=True)
     if carlini_wagner_flag:
-        cw = CarliniL2Method(classifier=classifier, targeted=False, learning_rate=0.01, max_iter=maximum_iterations, binary_search_steps=5, confidence=0.0, initial_const=0.01)
+        cw = CarliniL2Method(classifier=classifier, targeted=False, learning_rate=epsilon, max_iter=maximum_iterations, binary_search_steps=cw_binary_search_steps, confidence=0.0, initial_const=cw_init_const)
         return (x_test,fgsm.generate(x_test),pgd.generate(x_test),cw.generate(x_test))
     else:
         return(x_test,fgsm.generate(x_test),pgd.generate(x_test))
@@ -274,7 +281,7 @@ def evaluate_transferability(classifier,x_test_cross,y_test,base_acc_atk):
     preds = classifier.predict(x_test_cross)
     acc = np.mean(np.argmax(preds, axis=1) == np.argmax(y_test,axis=1))
     TSR = 1 - acc
-    accuracy_drop = base_acc_atk - acc
+    accuracy_drop = acc - base_acc_atk
     return (TSR,accuracy_drop)
 
 #Load Test set from dataset according to name of apt size
@@ -298,70 +305,106 @@ def load_testset(name,size):
     elif name =='cifar10':
         return load_cifar10_testset(size)
     else:
-        raise ValueError("Dataset Not Supported")
+        raise ValueError(f"Dataset {name} Not Supported")
 
 #Pipeline for complete evaluation of two models trained on the given dataset
-def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon=0.01, maximum_iterations=40, subset_size=1000):
-    """Performs adversarial robustness and transferability evaluation between two models.
+def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon, maximum_iterations, subset_size):
+    """
+    Performs adversarial robustness and transferability evaluation between two models.
 
-    Evaluates classical and hybrid models against clean and adversarial examples (FGSM, PGD, CW),
+    This function evaluates classical and hybrid models against clean and adversarial examples (FGSM, PGD, CW),
     computes performance metrics, stores adversarial examples for reuse, and measures transferability
     of attacks across models.
 
     Args:
-        dataset_name (str): Dataset name ('mnist', 'fmnist', 'cifar10').
+        dataset_name (str): Name of the dataset ('mnist', 'fmnist', 'cifar10').
         classical_model (tf.keras.Model): Classical model to evaluate.
         hybrid_model (tf.keras.Model): Hybrid (quantum-enhanced) model to evaluate.
-        epsilon (float, optional): Perturbation magnitude for attacks. Defaults to 0.01.
-        maximum_iterations (int, optional): Max iterations for PGD and CW. Defaults to 40.
-        subset_size (int, optional): Number of test samples to evaluate on. Defaults to 1000.
+        epsilon (float): Perturbation magnitude for adversarial attacks.
+        maximum_iterations (int): Max iterations for PGD and CW attacks.
+        subset_size (int): Number of test samples to evaluate on.
 
     Returns:
-        Tuple[pd.DataFrame, pd.DataFrame]: 
-            - Robustness metrics dataframe (acc, f1, precision, auc, perturbation).
+        Tuple[pd.DataFrame, pd.DataFrame]:
+            - Robustness metrics dataframe (accuracy, precision, F1 score, AUC-ROC, perturbation size).
             - Transferability metrics dataframe (TSR, accuracy drop).
     """
-    #Loading given dataset's test-set
-    dataset_details,x_test,y_test = load_testset(dataset_name,subset_size)
-    #Generating ART Classifiers
-    classifiers = create_ART_classifiers(classical_model, hybrid_model,dataset_details)
-    #Measuring Robustness
+    try:
+        # Loading given dataset's test-set
+        dataset_details, x_test, y_test = load_testset(dataset_name, subset_size)
+    except Exception as e:
+        print(f"Error : Failed to load dataset '{dataset_name}' due to: {e}")
+    try:
+        # Generating ART Classifiers
+        classifiers = create_ART_classifiers(classical_model, hybrid_model, dataset_details)
+    except Exception as e:
+        print(f"Error : Failed to create ART classifiers: {e}")
+    # Measuring Robustness
     robustness_data = []
     if carlini_wagner_flag:
-        attacks = ["clean","fgsm","pgd","cw"]
-        perts = ["none","min","mean","mean"]
+        attacks = ["clean", "fgsm", "pgd", "cw"]
+        perts = ["none", "min", "mean", "mean"]
     else:
-        attacks = ["clean","fgsm","pgd"]
-        perts = ["none","min","mean"]    
-    hashs_set, all_adversarial_examples, all_accuracies = [], [], [] 
+        attacks = ["clean", "fgsm", "pgd"]
+        perts = ["none", "min", "mean"]
+
+    hashs_set, all_adversarial_examples, all_accuracies = [], [], []
+
     for classifier in classifiers:
-        hash_value = generate_sha3_256_hash(classifier.model)
-        hashs_set.append(hash_value)
-        flag = check_redundancy(hash_value,dataset_name)
-        if flag:
-            adv_examples = load_from_memo(hash_value,dataset_name)
-        else:
-            adv_examples = generate_adversarial_attacks(classifier,x_test,epsilon,maximum_iterations)
-            store_adv_examples(dataset_name,hash_value,adv_examples)
-        all_adversarial_examples.append(adv_examples)
-        if carlini_wagner_flag:
-            perturbations = generate_pert(classifier,adv_examples[2],x_test,adv_examples[3])
-        else:
-            perturbations = generate_pert(classifier,adv_examples[2],x_test)
-        for idx,(adv_example,perturbation) in enumerate(zip(adv_examples,perturbations)):
-            metrics = evaluate_model(classifier,adv_example,y_test)
-            all_accuracies.append(metrics[0])
-            if not flag:
-                robustness_data.append([hash_value,attacks[idx]]+list(metrics)+[perts[idx],perturbation])
-    robustness_dataframe = pd.DataFrame(robustness_data,columns=["CNN_ID","attack_type","acc","precision","f1","auc-roc","pert_type","pert_size"])
-    #Measuring Transferability
+        try:
+            hash_value = generate_sha3_256_hash(classifier.model)
+            hashs_set.append(hash_value)
+            flag = check_redundancy(hash_value, dataset_name)
+
+            if flag:
+                adv_examples = load_from_memo(hash_value, dataset_name)
+            else:
+                adv_examples = generate_adversarial_attacks(classifier, x_test, epsilon, maximum_iterations)
+                store_adv_examples(dataset_name, hash_value, adv_examples)
+
+            all_adversarial_examples.append(adv_examples)
+
+            if carlini_wagner_flag:
+                perturbations = generate_pert(classifier, adv_examples[2], x_test, adv_examples[3])
+            else:
+                perturbations = generate_pert(classifier, adv_examples[2], x_test)
+
+            for idx, (adv_example, perturbation) in enumerate(zip(adv_examples, perturbations)):
+                metrics = evaluate_model(classifier, adv_example, y_test)
+                all_accuracies.append(metrics[0])
+                if not flag:
+                    robustness_data.append([hash_value, attacks[idx]] + list(metrics) + [perts[idx], perturbation])
+        except Exception as e:
+            print(f"Error : Failed to evaluate classifier with hash {hash_value}: {e}")
+            
+
+    try:
+        # Create DataFrame from robustness results
+        robustness_dataframe = pd.DataFrame(robustness_data, columns=["CNN_ID", "attack_type", "acc", "precision", "f1", "auc-roc", "pert_type", "pert_size"])
+    except Exception as e:
+        print(f"Error :Failed to build robustness dataframe: {e}")
+        
+
+    # Measuring Transferability
     transfer_data = []
     for i, attack in enumerate(attacks[1:]):
-        n_attacks = len(attacks)
-        metrics = evaluate_transferability(classifiers[1], all_adversarial_examples[0][i+1], y_test, all_accuracies[n_attacks+1+i])
-        transfer_data.append([hashs_set[0], hashs_set[1], attack]+list(metrics))
-        metrics2 = evaluate_transferability(classifiers[0], all_adversarial_examples[1][i+1], y_test, all_accuracies[1+i])
-        transfer_data.append([hashs_set[1], hashs_set[0], attack]+list(metrics2))
-    transfer_dataframe = pd.DataFrame(transfer_data,columns=["Donor_ID","Recipient_ID","attack_type","TSR","acc_drop"])
-    return (robustness_dataframe,transfer_dataframe)
-    
+        try:
+            n_attacks = len(attacks)
+            # Transfer from classical to hybrid
+            metrics = evaluate_transferability(classifiers[1], all_adversarial_examples[0][i+1], y_test, all_accuracies[n_attacks+1+i])
+            transfer_data.append([hashs_set[0], hashs_set[1], attack] + list(metrics))
+            # Transfer from hybrid to classical
+            metrics2 = evaluate_transferability(classifiers[0], all_adversarial_examples[1][i+1], y_test, all_accuracies[1+i])
+            transfer_data.append([hashs_set[1], hashs_set[0], attack] + list(metrics2))
+        except Exception as e:
+            print(f"Error : Failed to evaluate transferability for attack '{attack}': {e}")
+            
+
+    try:
+        # Create DataFrame from transferability results
+        transfer_dataframe = pd.DataFrame(transfer_data, columns=["Donor_ID", "Recipient_ID", "attack_type", "TSR", "acc_drop"])
+    except Exception as e:
+        print(f"Error : Failed to build transfer dataframe: {e}")
+        
+
+    return robustness_dataframe, transfer_dataframe

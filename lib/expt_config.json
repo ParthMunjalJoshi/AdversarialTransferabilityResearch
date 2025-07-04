@@ -1,0 +1,50 @@
+{
+    "quantum_ckt_parameters" : {
+        "n_qubits" : 5,
+        "depth":3,
+        "num_parallel_filters":4
+    },
+    "convolutional_layers_parameters":{
+        "n_layers":2,
+        "layers" :[
+            {
+                "filters":16,
+                "kernel_size":[5,5],
+                "padding":"same",
+                "batch-norm":true,
+                "activation":"relu",
+                "max_pool_kernel":[2,2]
+            },
+            {
+                "filters":32,
+                "kernel_size":[5,5],
+                "padding":"same",
+                "batch-norm":true,
+                "activation":"relu",
+                "max_pool_kernel":[2,2]
+            }
+        ]
+    },
+    "training_parameters" :{
+        "early_stop_patience" :5,
+        "reduce_lr_factor": 0.2,
+        "reduce_lr_patience":3,
+        "batch_size":32,
+        "epochs":50,
+        "val_set_size" :0.1
+    },
+    "adversarial_parameters" : {
+        "epsilon" : 0.01,
+        "max_iter" :40,
+        "pgd_batch_size":32,
+        "cw_binary_search_steps":5,
+        "cw_init_const":0.01,
+        "subset_size":1000
+    },
+    "dataset_details" : {
+        "datasets" : ["mnist","fmnist","cifar10"],
+        "shapes":[[28,28,1],[28,28,1],[32,32,3]],
+        "output_classes":[10,10,10]
+    },
+    "clear_temp_file_after_expt" : true
+}

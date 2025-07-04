@@ -66,9 +66,6 @@ This module creates a HQCNN/Classical model based on parameters passed to it. Fo
   * \_entanglement\_circuit.py
   * \_entanglement\_layer.py
 
-:warning: **CAUTION** :warning: Throughout this experiment, the number of qubits used was kept at 5. If you wish to change it, please make this change in the helper module \_entanglement\_circuit.py, apart from entering the appropriate value in model\_creation\_factory.
-
-
 ### Model Training:
 
 ![plot](./lib/imgs/TrainModule.png)
@@ -124,6 +121,9 @@ pip install -r requirements.txt
 python entanglement_experiment_homogenous.py
 ```
 
+To modify configurations related to different aspects of the pipeline you may access :
+  * lib/expt_config.json
+ 
 ## Expected Outcomes
 The project aims to provide insights into:
   * The degree of adversarial transferability between classical and hybrid quantum-classical CNNs.

@@ -5,6 +5,15 @@ from keras.layers import Input, Conv2D, Activation, MaxPooling2D, Flatten, Dense
 import _entanglement_layer as el
 import _entanglement_circuit as ec
 import _entanglement_strategies as es
+import json
+
+with open('lib/expt_config.json', 'r') as f:
+    data = json.load(f)
+n_qubits = data["quantum_ckt_parameters"]["n_qubits"]
+depth=data["quantum_ckt_parameters"]["depth"]
+n_conv_layers = data["convolutional_layers_parameters"]["n_layers"]
+conv_layers = data["convolutional_layers_parameters"]["layers"]
+assert len(conv_layers) == n_conv_layers
 
 def retrieve_entg(n_qubits, depth, entanglement_details_list):
     """Parses entanglement strategy strings and constructs entanglement configuration.
@@ -36,6 +45,7 @@ def retrieve_entg(n_qubits, depth, entanglement_details_list):
     for i in range(depth):
         if entanglement_details_list[i] == "classical":
             entg_flag = False
+            break
         elif entanglement_details_list[i] == "none":
             entg[0].append(es.no_entanglement)
             entg[1].append(())
@@ -66,7 +76,7 @@ def retrieve_entg(n_qubits, depth, entanglement_details_list):
     return entg_flag, entg
 
 
-def entanglement_model_factory(shape, n_qubits, num_parallel_filters, depth, entanglement_details_list):
+def entanglement_model_factory(shape, n_qubits, num_parallel_filters, depth, entanglement_details_list,n_classes):
     """Constructs a hybrid quantum-classical convolutional neural network model.
 
     This model includes classical convolutional layers followed by one or more quantum layers
@@ -82,24 +92,19 @@ def entanglement_model_factory(shape, n_qubits, num_parallel_filters, depth, ent
             Same options as in `retrieve_entg`.
 
     Returns:
-        keras.Model: A compiled hybrid model with quantum or classical post-processing.
+        keras.Model: A hybrid model with quantum or classical post-processing.
     """
     entg_flag, entanglement_details = retrieve_entg(n_qubits, depth, entanglement_details_list)
-    output_dim_per_filter = n_qubits
     weights = {"weights": (depth, 3, n_qubits)}
     
-    inputs = Input(shape=shape, name="input_image")
-
-    x = Conv2D(16, (5, 5), padding="same", name="conv2d_1")(inputs)
-    x = BatchNormalization(name="batch_norm_1")(x)
-    x = Activation('relu', name="activation_1")(x)
-    x = MaxPooling2D((2, 2), name="max_pooling2d_1")(x)
-
-    x = Conv2D(32, (5, 5), padding="same", name="conv2d_2")(x)
-    x = BatchNormalization(name="batch_norm_2")(x)
-    x = Activation('relu', name="activation_2")(x)
-    x = MaxPooling2D((2, 2), name="max_pooling2d_2")(x)
-
+    x = Input(shape=shape, name="input_image")
+    inputs = x
+    for i in range(n_conv_layers):
+        x = Conv2D(conv_layers[i]["filters"], tuple(conv_layers[i]["kernel_size"]), padding=conv_layers[i]["padding"], name=f"conv2d_{i}")(x)
+        if conv_layers[i]["batch-norm"]:
+            x = BatchNormalization(name=f"batch_norm_{i}")(x)
+        x = Activation(conv_layers[i]["activation"], name=f"activation_{i}")(x)
+        x = MaxPooling2D(tuple(conv_layers[i]["max_pool_kernel"]), name=f"max_pooling2d_{i}")(x)
     x = Flatten(name="flatten")(x)
     quantum_input = Dense(n_qubits, name="dense_to_quantum_input")(x)
     quantum_input = BatchNormalization(name="batch_norm_dense_to_quantum_input")(quantum_input)
@@ -111,8 +116,9 @@ def entanglement_model_factory(shape, n_qubits, num_parallel_filters, depth, ent
             filter_layer = el.EntanglementKerasLayer(
                 qnode=ec.quantum_circuit,
                 weight_shapes=weights,
-                output_dim=output_dim_per_filter,
+                output_dim=n_qubits,
                 entg=entanglement_details,
+                embedded_rotation="X",
                 depth=depth,
                 name=f"quantum_filter_{i}"
             )(quantum_input)
@@ -123,10 +129,10 @@ def entanglement_model_factory(shape, n_qubits, num_parallel_filters, depth, ent
         else:
             concatenated_quantum_output = parallel_quantum_outputs[0]
 
-        outputs = Dense(10, activation="softmax", name="output_classification")(concatenated_quantum_output)
+        outputs = Dense(n_classes, activation="softmax", name="output_classification")(concatenated_quantum_output)
     else:
         x = Dense(2 * n_qubits, name="middle_dense")(quantum_input)
-        outputs = Dense(10, activation="softmax", name="output_classification")(x)
+        outputs = Dense(n_classes, activation="softmax", name="output_classification")(x)
 
     model = Model(inputs=inputs, outputs=outputs, name="HQCNN")
     return model

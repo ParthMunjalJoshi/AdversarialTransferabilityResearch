@@ -16,7 +16,7 @@ class EntanglementKerasLayer(tf.keras.layers.Layer):
         depth (int): Number of repeated entangling layers in the quantum circuit.
     """
 
-    def __init__(self, qnode, weight_shapes, output_dim, entg, embedded_rotation="X", depth=3, **kwargs):
+    def __init__(self, qnode, weight_shapes, output_dim, entg, embedded_rotation, depth, **kwargs):
         """Initializes the EntanglementKerasLayer.
 
         Args:
@@ -24,8 +24,8 @@ class EntanglementKerasLayer(tf.keras.layers.Layer):
             weight_shapes (dict): A dictionary of trainable parameter names and their shapes.
             output_dim (int): The number of output features from the QNode.
             entg (Any): Information defining the entanglement structure of the circuit.
-            embedded_rotation (str, optional): Initial embedding gate. Defaults to "X".
-            depth (int, optional): Depth of the entanglement layers. Defaults to 3.
+            embedded_rotation (str): Initial embedding gate.
+            depth (int): Depth of the entanglement layers. 
             **kwargs: Additional keyword arguments for base Keras Layer.
         """
         super().__init__(**kwargs)
@@ -67,7 +67,7 @@ class EntanglementKerasLayer(tf.keras.layers.Layer):
         Returns:
             tf.Tensor: Output tensor resulting from the QNode execution.
         """
-        results = self.qnode(inputs, self.qnode_weights, self.entanglement_info, self.init_embed_rot, self.depth)
+        results = self.qnode(inputs, self.qnode_weights, self.entanglement_info, self.init_embed_rot)
         if isinstance(results, (list, tuple)):
             return tf.stack(results, axis=-1)
         return results

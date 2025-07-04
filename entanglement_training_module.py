@@ -3,6 +3,16 @@ from tensorflow import keras
 from keras.utils import to_categorical
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
+import json
+
+with open('lib/expt_config.json', 'r') as f:
+    data = json.load(f)
+val_frac = data["training_parameters"]["val_set_size"]
+erly_stp_patience = data["training_parameters"]["early_stop_patience"]
+lr_factor = data["training_parameters"]["reduce_lr_factor"]
+lr_patience = data["training_parameters"]["reduce_lr_patience"]
+batch_sz = data["training_parameters"]["batch_size"]
+epchs = data["training_parameters"]["epochs"]
 
 def preprocess(x_train, y_train, details):
     """Normalizes and one-hot encodes the training data, then splits it into training and validation sets.
@@ -19,7 +29,7 @@ def preprocess(x_train, y_train, details):
     x_train = x_train.astype('float32') / 255.0
     y_train = to_categorical(y_train, details["n_classes"])
     x_train, x_val, y_train, y_val = train_test_split(
-        x_train, y_train, random_state=127, test_size=0.1, shuffle=True
+        x_train, y_train, random_state=127, test_size=val_frac, shuffle=True
     )
     return (x_train, y_train), (x_val, y_val)
 
@@ -108,16 +118,16 @@ def train_model(model, dataset):
     tf.get_logger().setLevel(logging.ERROR)
 
     # Define callbacks
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=erly_stp_patience, restore_best_weights=True)
     model_checkpoint = ModelCheckpoint('tmp/temp.keras', save_best_only=True, monitor='val_loss')
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, min_lr=1e-5)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=lr_factor, patience=lr_patience, min_lr=1e-5)
     
     # Train the model
     history = model.fit(
         x_train, y_train,
         validation_data=(x_val, y_val),
-        batch_size=32,
-        epochs=50,
+        batch_size=batch_sz,
+        epochs=epchs,
         verbose=1,
         callbacks=[early_stopping, model_checkpoint, reduce_lr]
     )

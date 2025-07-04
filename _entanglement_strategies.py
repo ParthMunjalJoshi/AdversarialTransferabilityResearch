@@ -11,14 +11,12 @@ def get_fxn(cnot_flag):
     """
     return qml.CNOT if cnot_flag else qml.CZ
 
-
 def no_entanglement():
     """Placeholder function representing absence of entanglement.
 
     This function performs no operation and is used as a stand-in when no entanglement is required.
     """
     pass
-
 
 def linear_entanglement(n_qubits, cnot_flag):
     """Applies linear entanglement across adjacent qubits in a quantum circuit.
@@ -33,7 +31,6 @@ def linear_entanglement(n_qubits, cnot_flag):
     for i in range(n_qubits - 1):
         fxn(wires=[i, i + 1])
 
-
 def circular_entanglement(n_qubits, cnot_flag):
     """Applies circular entanglement, connecting each qubit to its next neighbor with wrap-around.
 
@@ -46,7 +43,6 @@ def circular_entanglement(n_qubits, cnot_flag):
     fxn = get_fxn(cnot_flag)
     for i in range(n_qubits):
         fxn(wires=[i, (i + 1) % n_qubits])
-
 
 def full_entanglement(n_qubits, cnot_flag):
     """Applies full entanglement between all unique pairs of qubits.
@@ -61,7 +57,6 @@ def full_entanglement(n_qubits, cnot_flag):
     for i in range(n_qubits - 1):
         for j in range(i + 1, n_qubits):
             fxn(wires=[i, j])
-
 
 def staggered_entanglement(n_qubits, cnot_flag, layers_done):
     """Applies staggered (alternating) entanglement pattern between adjacent qubits.
