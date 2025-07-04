@@ -1,5 +1,5 @@
 import entanglement_model_factory as fac
-import training_module as tm
+import entanglement_training_module as tm
 import evaluation_pipeline as ep
 import os
 import pandas as pd
