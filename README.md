@@ -14,41 +14,6 @@ Understanding adversarial transferability is crucial for several reasons:
   * **Grey-Box and Black-Box Attacks:** In real-world scenarios, attackers often don't have full access to a model's architecture or parameters. Transferability allows adversaries to exploit shared weaknesses even with limited information. This is done by training adversarial examples on a surrogate model and using them to attack the target model.
   * **Robust AI Systems:** The findings from this study will inform the design of more robust and secure AI systems, particularly within the evolving landscape of quantum machine learning. It will deliver insight as to which entanglement strategies are more adversarially robust and less-prone to transfer attacks.
 
-## Entanglement Strategies
-
-Entanglement strategies are an important aspect of PQC design. 
-
-### Homogenous Strategies:
-
-These are Ansatz using only one type of entanglement layer throughout the circuit. The following are a few types:
-  * No entanglement:
-    In this strategy, the PQC consists only of parametric phase gates and no entangling layers. 
-
-    ![plot](./lib/imgs/strat/no_entg.png)
-
-
-  * Linear Entanglement:
-    In this strategy, we apply CNOT/CZ between neighboring qubits (N,N+1) pairs.
-
-    ![plot](./lib/imgs/strat/linear_entg.png)
-
-  * Circular Entanglement:
-    This is an extension to the linear entanglement strategy where the last qubit is linked with the first to complete the ring.
-
-    ![plot](./lib/imgs/strat/circular_entg.png)    
-
-  * Full Entanglement:
-    In this strategy, there is a CNOT/CZ between every pair of qubits.
-  
-    ![plot](./lib/imgs/strat/full_entg.png)   
-
-  * Staggered Entanglement:
-    In this strategy, linking is done in layers or stages, typically by applying entangling gates to different non-overlapping, sets of qubits in sequential blocks of the circuit.
-
-    ![plot](./lib/imgs/strat/stag_entg.png) 
-
-Note: in the above illustrations we have used CNOT but CZ can also produce an entangling effect.
-
 ## Methodology
 
 ![plot](./lib/imgs/EntanglementExperiment.png)
@@ -93,6 +58,20 @@ For exact specifics refer to the file:
 
   * evaluation\_pipeline.py
 
+### Performance metrics:
+This project yielded significant improvements in experimental efficiency and throughput, driven by robust engineering practices and a focus on automation. The key performance metrics achieved are:
+  * **Reduced manual overhead in evaluation by 75%**
+  Without the evaluation pipeline, robustness and bi-directional transferability would need to be assessed separately, increasing complexity and manual effort. The pipeline consolidates these evaluations into a single, streamlined step. The resulting reduction in overhead is quantified by the decrease in wait states—by minimizing idle time, the pipeline can operate in the background, enabling researchers to remain productive and continue other tasks concurrently.
+  * **Up to 88% Faster Repeat Evaluations**
+  This acceleration was enabled by integrating model fingerprinting and memoization into the evaluation pipeline. When an evaluation for a specific model configuration and attack scenario had been performed previously, the pipeline now reuses the stored adversarial examples instead of re-computing them. This was measured by comparing the execution time of repeated evaluations with and without the memoization system. This improvement is particularly valuable in scenarios where only one of the two compared models is repeated, which occurs frequently.
+  * **Boosted Experimental Throughput by 50%**
+  This improvement was a direct result of automating the entire experimental workflow, including model generation, training, evaluation, and result logging. By reducing manual intervention and speeding up repeated evaluations, the total number of experiments that could be executed and analyzed within a given timeframe increased significantly. This was measured by comparing the number of completed experiment runs per unit of time before and after the automation of these processes for a small scale test experiment. 
+
+### Datasets used:
+  * MNIST dataset
+  * FashionMNIST dataset
+  * CIFAR - 10 dataset
+
 ### Final Output:
 Running the experiment produces 3 useful csv files:
   * lib/index.csv:  contains model ID (hash) and architecture (entanglement strategy details)
@@ -127,9 +106,45 @@ To modify configurations related to different aspects of the pipeline you may ac
 ## Expected Outcomes
 The project aims to provide insights into:
   * The degree of adversarial transferability between classical and hybrid quantum-classical CNNs.
-  * The impact of different entanglement strategies on adversarial robusntess and transferability.
+  * The impact of different entanglement strategies on adversarial robustness and transferability.
+
+---
 
 
+## Entanglement Strategies
+
+Entanglement strategies are an important aspect of Parametric Quantum Circuit design. 
+
+### Homogenous Strategies:
+
+These are Ansatz using only one type of entanglement layer throughout the circuit. The following are a few types:
+  * No entanglement:
+    In this strategy, the PQC consists only of parametric phase gates and no entangling layers. 
+
+    ![plot](./lib/imgs/strat/no_entg.png)
+
+
+  * Linear Entanglement:
+    In this strategy, we apply CNOT/CZ between neighboring qubits (N,N+1) pairs.
+
+    ![plot](./lib/imgs/strat/linear_entg.png)
+
+  * Circular Entanglement:
+    This is an extension to the linear entanglement strategy where the last qubit is linked with the first to complete the ring.
+
+    ![plot](./lib/imgs/strat/circular_entg.png)    
+
+  * Full Entanglement:
+    In this strategy, there is a CNOT/CZ between every pair of qubits.
+  
+    ![plot](./lib/imgs/strat/full_entg.png)   
+
+  * Staggered Entanglement:
+    In this strategy, linking is done in layers or stages, typically by applying entangling gates to different non-overlapping, sets of qubits in sequential blocks of the circuit.
+
+    ![plot](./lib/imgs/strat/stag_entg.png) 
+
+Note: in the above illustrations we have used CNOT but CZ can also produce an entangling effect.
 
 
 
