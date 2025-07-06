@@ -22,7 +22,8 @@ cw_init_const = data["adversarial_parameters"]["cw_init_const"]
 subset_size = data["adversarial_parameters"]["subset_size"]
 memo_file_path = 'tmp/memo.pkl'
 
-dict_str = json.dumps(data, sort_keys=True).encode('utf-8')
+data_adv = data["adversarial_parameters"]
+dict_str = json.dumps(data_adv, sort_keys=True).encode('utf-8')
 config_hash = hashlib.sha3_256(dict_str).hexdigest()
 
 
