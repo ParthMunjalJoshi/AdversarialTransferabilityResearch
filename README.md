@@ -60,11 +60,11 @@ For exact specifics refer to the file:
 
 ### Performance metrics:
 This project yielded significant improvements in experimental efficiency and throughput, driven by robust engineering practices and a focus on automation. The key performance metrics achieved are:
-  * **Reduced manual overhead in evaluation by 75%**
+  * **Reduced manual overhead in evaluation by 75%** :
   Without the evaluation pipeline, robustness and bi-directional transferability would need to be assessed separately, increasing complexity and manual effort. The pipeline consolidates these evaluations into a single, streamlined step. The resulting reduction in overhead is quantified by the decrease in wait states—by minimizing idle time, the pipeline can operate in the background, enabling researchers to remain productive and continue other tasks concurrently.
-  * **Up to 88% Faster Repeat Evaluations**
+  * **Up to 88% Faster Repeat Evaluations** :
   This acceleration was enabled by integrating model fingerprinting and memoization into the evaluation pipeline. When an evaluation for a specific model configuration and attack scenario had been performed previously, the pipeline now reuses the stored adversarial examples instead of re-computing them. This was measured by comparing the execution time of repeated evaluations with and without the memoization system. This improvement is particularly valuable in scenarios where only one of the two compared models is repeated, which occurs frequently.
-  * **Boosted Experimental Throughput by 50%**
+  * **Boosted Experimental Throughput by 50%** : 
   This improvement was a direct result of automating the entire experimental workflow, including model generation, training, evaluation, and result logging. By reducing manual intervention and speeding up repeated evaluations, the total number of experiments that could be executed and analyzed within a given timeframe increased significantly. This was measured by comparing the number of completed experiment runs per unit of time before and after the automation of these processes for a small scale test experiment. 
 
 ### Datasets used:
