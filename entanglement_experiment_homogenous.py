@@ -11,13 +11,11 @@ import clear_temp_folder as ctf
 with open('lib/expt_config.json', 'r') as f:
     data = json.load(f)
 
-model_associated_data_1 = data["quantum_ckt_parameters"]
-dict_str_1 = json.dumps(model_associated_data_1, sort_keys=True).encode('utf-8')
-model_associated_data_2 = data["convolutional_layers_parameters"]
-dict_str_2 = json.dumps(model_associated_data_2, sort_keys=True).encode('utf-8')
-model_associated_data_3 = data["training_parameters"]
-dict_str_3 = json.dumps(model_associated_data_3, sort_keys=True).encode('utf-8')
-dict_str = dict_str_1 + dict_str_2 + dict_str_3
+dependancies = ["quantum_ckt_parameters","convolutional_layers_parameters","training_parameters"]
+dict_str = ""
+for d in dependancies:
+    model_associated_data = data[d]
+    dict_str += json.dumps(model_associated_data, sort_keys=True).encode('utf-8')
 config_hash = hashlib.sha3_256(dict_str).hexdigest()
 
 n_qubits = data["quantum_ckt_parameters"]["n_qubits"]
@@ -49,10 +47,9 @@ def append_to_db(path_csv,df):
         path_csv (str): Path to the CSV file.
         df (pd.DataFrame): DataFrame to append.
     """
-    if not os.path.exists(path_csv):
-        df.to_csv(path_csv, index=False)
-    else:
-        df.to_csv(path_csv, mode='a', header=False, index=False)
+    write_header = not os.path.exists(path_csv)
+    with open(path_csv, 'a', newline='') as f:
+        df.to_csv(f, header=write_header, index=False)
 
 def main():
     """Main orchestration function for automated model evaluation.
