@@ -22,6 +22,10 @@ cw_init_const = data["adversarial_parameters"]["cw_init_const"]
 subset_size = data["adversarial_parameters"]["subset_size"]
 memo_file_path = 'tmp/memo.pkl'
 
+dict_str = json.dumps(data, sort_keys=True).encode('utf-8')
+config_hash = hashlib.sha3_256(dict_str).hexdigest()
+
+
 #Load db from pickle_file
 def load_db():
     """Loads the memoization database from disk.
@@ -49,7 +53,7 @@ def check_redundancy(thash,dataset):
         bool: True if the model has already been evaluated and cached.
     """
     _,db = load_db()
-    return ((dataset,thash) in db)
+    return ((config_hash,dataset,thash) in db)
 
 #Pulls model adversarial examples from storage
 def load_from_memo(hash_value,dataset):
@@ -63,7 +67,7 @@ def load_from_memo(hash_value,dataset):
         Tuple[np.ndarray, ...]: Tuple of adversarial example arrays.
     """
     _,db = load_db()
-    return db[(dataset,hash_value)]
+    return db[(config_hash,dataset,hash_value)]
     
 
 #Stores adversarial examples of model in a dump file
@@ -76,7 +80,7 @@ def store_adv_examples(dataset,hash_value,adv_examples):
         adv_examples (Tuple[np.ndarray, ...]): Generated adversarial examples to store.
     """
     memo_file_path,db = load_db()
-    db[(dataset,hash_value)] = adv_examples   
+    db[(config_hash,dataset,hash_value)] = adv_examples   
     with open(memo_file_path, 'wb') as dbfile:
         pickle.dump(db, dbfile)        
 
