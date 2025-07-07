@@ -97,7 +97,7 @@ def entanglement_model_factory(shape, n_qubits, num_parallel_filters, depth, ent
     entg_flag, entanglement_details = retrieve_entg(n_qubits, depth, entanglement_details_list)
     weights = {"weights": (depth, 3, n_qubits)}
     
-    x = Input(shape=shape, name="input_image")
+    x = Input(shape=shape)
     inputs = x
     for i in range(n_conv_layers):
         x = Conv2D(conv_layers[i]["filters"], tuple(conv_layers[i]["kernel_size"]), padding=conv_layers[i]["padding"], name=f"conv2d_{i}")(x)

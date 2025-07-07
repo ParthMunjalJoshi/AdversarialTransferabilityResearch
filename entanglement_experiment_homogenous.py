@@ -7,12 +7,13 @@ import pandas as pd
 import json
 import hashlib
 import clear_temp_folder as ctf
+from tensorflow import keras
 
 with open('lib/expt_config.json', 'r') as f:
     data = json.load(f)
 
 dependancies = ["quantum_ckt_parameters","convolutional_layers_parameters","training_parameters"]
-dict_str = ""
+dict_str = b''
 for d in dependancies:
     model_associated_data = data[d]
     dict_str += json.dumps(model_associated_data, sort_keys=True).encode('utf-8')
@@ -64,16 +65,19 @@ def main():
         - `lib/transferability.csv`: Attack transfer metrics.
         - `lib/index.csv`: Lookup for model names and their corresponding hashes.
     """
+    import tensorflow as tf
+    import logging
+    tf.get_logger().setLevel(logging.ERROR)
+    
     column_names = ["model","hash"]
     os.makedirs("lib/models", exist_ok=True)
     os.makedirs("lib/hist", exist_ok=True)
     for idx,dataset in enumerate(datasets):
-        index = []
         classical_path = "lib/models/classical_"+dataset+str(config_hash)+".keras" 
         classical_history_path = "lib/hist/classical_"+dataset+str(config_hash)+".pkl"
         if os.path.exists(classical_path):
             try:
-                classical_model = tf.keras.models.load_model(classical_path)  
+                classical_model = keras.models.load_model(classical_path)  
             except Exception as e:
                 print(f"Unable to load classical model due to : {str(e)}")  
         else:
@@ -87,6 +91,7 @@ def main():
                 print(f"Unable to save classical model/history due to : {str(e)}")  
         entanglement_strategies = [ i*depth for  i in [["none"],["linearx"],["linearz"],["circularx"],["circularz"],["fullx"],["fullz"],["staggeredx"],["staggeredz"]]]
         for entanglement_strategy in entanglement_strategies:
+            index = []
             #Generating path compatible strategy name (avoid '[]' and ',' .etc)
             strategy_name = "_".join(entanglement_strategy)
             hybrid_path = f"lib/models/hybrid_{dataset}_{strategy_name}_{str(config_hash)}.weights.h5"
@@ -118,8 +123,8 @@ def main():
                     index.append(["HQCNN_" + dataset + "_" + str(entanglement_strategy), ids[1]])
                 elif len(ids) == 1:
                     index.append(["HQCNN_" + dataset + "_" + str(entanglement_strategy), ids[0]])
-        index_df = pd.DataFrame(index,columns=column_names)
-        append_to_db("lib/results/index.csv",index_df)
+            index_df = pd.DataFrame(index,columns=column_names)
+            append_to_db("lib/results/index.csv",index_df)
 
 if __name__ == "__main__":
     main()

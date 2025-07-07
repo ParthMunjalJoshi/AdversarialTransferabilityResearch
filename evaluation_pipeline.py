@@ -20,17 +20,19 @@ pgd_batch_size = data["adversarial_parameters"]["pgd_batch_size"]
 cw_binary_search_steps = data["adversarial_parameters"]["cw_binary_search_steps"]
 cw_init_const = data["adversarial_parameters"]["cw_init_const"]
 subset_size = data["adversarial_parameters"]["subset_size"]
-memo_file_path = 'tmp/memo.pkl'
+
 
 data_adv = data["adversarial_parameters"]
 dict_str = json.dumps(data_adv, sort_keys=True).encode('utf-8')
 config_hash = hashlib.sha3_256(dict_str).hexdigest()
 
+#memo_file_path = 'tmp/'+str(config_hash)+"_"+model_hash+'.pkl'
 
 #Load db from pickle_file
-def load_db():
+def load_db(memo_file_path):
     """Loads the memoization database from disk.
-
+    Args:
+        memo_file_path (str): filepath of stored memo
     Returns:
         Tuple[str, dict]: Path to the memo file and the database dictionary.
     """
@@ -40,48 +42,48 @@ def load_db():
             db = pickle.load(dbfile)
     else:
         os.makedirs(os.path.dirname(memo_file_path), exist_ok=True)
-    return (memo_file_path,db)
+    return db
 
 #Checks if model is already evaluated
-def check_redundancy(thash,dataset):
+def check_redundancy(memo_file_path,dataset):
     """Checks whether a given model hash is already evaluated.
 
     Args:
-        thash (str): SHA3-256 hash of the model weights.
+        memo_file_path (str): filepath of stored memo
         dataset(str) : name of dataset
 
     Returns:
         bool: True if the model has already been evaluated and cached.
     """
-    _,db = load_db()
-    return ((config_hash,dataset,thash) in db)
+    db = load_db(memo_file_path)
+    return (dataset in db)
 
 #Pulls model adversarial examples from storage
-def load_from_memo(hash_value,dataset):
+def load_from_memo(memo_file_path,dataset):
     """Loads adversarial examples for a model from the memoization database.
 
     Args:
-        hash_value (str): SHA3-256 hash of the model.
+        memo_file_path (str): filepath of stored memo
         dataset(str) : name of dataset
 
     Returns:
         Tuple[np.ndarray, ...]: Tuple of adversarial example arrays.
     """
-    _,db = load_db()
-    return db[(config_hash,dataset,hash_value)]
+    db = load_db(memo_file_path)
+    return db[dataset]
     
 
 #Stores adversarial examples of model in a dump file
-def store_adv_examples(dataset,hash_value,adv_examples):
+def store_adv_examples(memo_file_path,dataset,adv_examples):
     """Stores adversarial examples in the memoization database.
 
     Args:
+        memo_file_path (str): filepath of stored memo
         dataset(str) : name of dataset
-        hash_value (str): SHA3-256 hash of the model.
         adv_examples (Tuple[np.ndarray, ...]): Generated adversarial examples to store.
     """
-    memo_file_path,db = load_db()
-    db[(config_hash,dataset,hash_value)] = adv_examples   
+    db = load_db(memo_file_path)
+    db[dataset] = adv_examples   
     with open(memo_file_path, 'wb') as dbfile:
         pickle.dump(db, dbfile)        
 
@@ -359,13 +361,14 @@ def eval_pipeline(dataset_name,classical_model, hybrid_model, epsilon, maximum_i
         try:
             hash_value = generate_sha3_256_hash(classifier.model)
             hashs_set.append(hash_value)
-            flag = check_redundancy(hash_value, dataset_name)
+            memo_file_path = 'tmp/'+str(config_hash)+"_"+hash_value+'.pkl'
+            flag = check_redundancy(memo_file_path, dataset_name)
 
             if flag:
-                adv_examples = load_from_memo(hash_value, dataset_name)
+                adv_examples = load_from_memo(memo_file_path, dataset_name)
             else:
                 adv_examples = generate_adversarial_attacks(classifier, x_test, epsilon, maximum_iterations)
-                store_adv_examples(dataset_name, hash_value, adv_examples)
+                store_adv_examples(memo_file_path,dataset_name, adv_examples)
 
             all_adversarial_examples.append(adv_examples)
 

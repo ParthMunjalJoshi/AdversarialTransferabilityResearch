@@ -46,5 +46,5 @@
         "shapes":[[28,28,1],[28,28,1],[32,32,3]],
         "output_classes":[10,10,10]
     },
-    "clear_temp_file_after_expt" : true
+    "clear_temp_file_after_expt" : false
 }
