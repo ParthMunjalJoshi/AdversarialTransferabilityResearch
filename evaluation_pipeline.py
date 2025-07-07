@@ -90,7 +90,7 @@ def store_adv_examples(memo_file_path,dataset,adv_examples):
 
 #Generates hash for given model
 def generate_sha3_256_hash(model):
-    """Generates a SHA3-256 hash based on the weights of a TensorFlow model.
+    """Generates a SHA3-256 hash based on the raw weights of a TensorFlow model.
 
     Args:
         model (tf.keras.Model): The model to hash.
@@ -98,14 +98,10 @@ def generate_sha3_256_hash(model):
     Returns:
         str: SHA3-256 hexadecimal hash string of the model's weights.
     """
-    filepath = "tmp/temp.weights.h5"
     sha256_hash = hashlib.sha3_256()
-    model.save_weights(filepath)
-    with open(filepath, "rb") as f:
-        # Read and update hash string value in chunks
-        for byte_block in iter(lambda: f.read(4096), b""):
-            sha256_hash.update(byte_block)
-    os.remove(filepath)
+    for layer in model.layers:
+        for weight in layer.get_weights():
+            sha256_hash.update(weight.tobytes())
     return sha256_hash.hexdigest()
 
 #Common preprocessing functions encapsulated to reduce redundancy

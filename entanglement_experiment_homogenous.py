@@ -73,6 +73,7 @@ def main():
     os.makedirs("lib/models", exist_ok=True)
     os.makedirs("lib/hist", exist_ok=True)
     for idx,dataset in enumerate(datasets):
+        print(f"Running Classical Model Code on {dataset}. ")
         classical_path = "lib/models/classical_"+dataset+str(config_hash)+".keras" 
         classical_history_path = "lib/hist/classical_"+dataset+str(config_hash)+".pkl"
         if os.path.exists(classical_path):
@@ -94,6 +95,7 @@ def main():
             index = []
             #Generating path compatible strategy name (avoid '[]' and ',' .etc)
             strategy_name = "_".join(entanglement_strategy)
+            print(f"Running Hybrid Model Code on {dataset} with {strategy_name}.")
             hybrid_path = f"lib/models/hybrid_{dataset}_{strategy_name}_{str(config_hash)}.weights.h5"
             hybrid_history_path = f"lib/hist/hybrid_{dataset}_{strategy_name}_{str(config_hash)}.pkl"
             hybrid_model = fac.entanglement_model_factory(shapes[idx],n_qubits,num_parallel_filters,depth,entanglement_strategy,num_classes[idx])
