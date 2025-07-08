@@ -74,6 +74,7 @@ def main():
     column_names = ["model","hash"]
     os.makedirs("lib/models", exist_ok=True)
     os.makedirs("lib/hist", exist_ok=True)
+    os.makedirs("lib/results", exist_ok=True)
     for idx,dataset in enumerate(datasets):
         print(f"Running Classical Model Code on {dataset}. ")
         classical_path = "lib/models/classical_"+dataset+str(config_hash)+".keras" 
