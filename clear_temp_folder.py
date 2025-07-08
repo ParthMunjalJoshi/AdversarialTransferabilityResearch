@@ -15,6 +15,8 @@ def clear_directory_files(directory_path):
             try:
                 os.remove(file_path)
                 print(f"Removed file: {file_path}")
+            except FileNotFoundError:
+                print(f"File not found (probably deleted by another process): {file_path}")
             except OSError as e:
                 print(f"Error removing file {file_path}: {e}")
 
