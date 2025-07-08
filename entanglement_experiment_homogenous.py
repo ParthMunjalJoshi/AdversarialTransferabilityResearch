@@ -48,9 +48,11 @@ def append_to_db(path_csv,df):
         path_csv (str): Path to the CSV file.
         df (pd.DataFrame): DataFrame to append.
     """
-    write_header = not os.path.exists(path_csv)
-    with open(path_csv, 'a', newline='') as f:
-        df.to_csv(f, header=write_header, index=False)
+    if os.path.exists(path_csv):
+        with open(path_csv, 'a', newline='') as f:
+            df.to_csv(f, header=False, index=False)
+    else:
+        df.to_csv(path_csv,header=True,index = False)
 
 def main():
     """Main orchestration function for automated model evaluation.
