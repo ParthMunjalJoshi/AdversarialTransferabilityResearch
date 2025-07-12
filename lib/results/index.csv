@@ -1,0 +1,31 @@
+model,hash
+CNN_mnist,b08f9ce6e5a3136548c7fbd69077e103442cbbf476cbd008c4294e7601cac4b9
+"HQCNN_mnist_['none', 'none', 'none']",63f5675f8196c5f3e2b48db5e8fa45752b978461b4c0575b13545f8348043ebe
+"HQCNN_mnist_['linearx', 'linearx', 'linearx']",843450760ea39fbb394013a3a94197c4a1083327f2646ec5d26b4242b5423806
+"HQCNN_mnist_['linearz', 'linearz', 'linearz']",a65a7bd6997619e922f8b7b612577c7aa7e96d6536d5de84d80c6969c177a23e
+"HQCNN_mnist_['circularx', 'circularx', 'circularx']",bc5609f67403dbc9c2163e12827bc2a15c211ba549584dc51003df1ff7cbaedc
+"HQCNN_mnist_['circularz', 'circularz', 'circularz']",749e22cec635e58afb0dc24b82df2a44717397bbdd971fa73602a6e811634826
+"HQCNN_mnist_['fullx', 'fullx', 'fullx']",8ece6a7a7522aa09ffb786b67d2ac107000d192b4cf74ea29a9402ec888eb004
+"HQCNN_mnist_['fullz', 'fullz', 'fullz']",17214d6e118bf74c852a1c68004209041e07f50b1cb197b4ba918c9b2db6dc38
+"HQCNN_mnist_['staggeredx', 'staggeredx', 'staggeredx']",2aab1f5eb242ffe0bd45f9d54f4137591a8bee2a352a2d4f533f7f72fab7c648
+"HQCNN_mnist_['staggeredz', 'staggeredz', 'staggeredz']",82611e134c0bee86cb386c37730eaa389ce86cb4c01e17a425c79a732eb9e37e
+CNN_fmnist,774bde0e4c93d5eda84e78aef9d0376e34178fce597948213902dfa762f1a026
+"HQCNN_fmnist_['none', 'none', 'none']",50bfe5d9966ad006c48aad9d164ba90ad0e50c4b56130b2b40cd76ef65574ec0
+"HQCNN_fmnist_['linearx', 'linearx', 'linearx']",dbdea9c5e03787f10511f2456271433e6e18e1616ec2368e8042dd73d5233b1c
+"HQCNN_fmnist_['linearz', 'linearz', 'linearz']",a5853371c4538433d061141d0dcdb476f185d0f289de2b559253c1ecff00dd87
+"HQCNN_fmnist_['circularx', 'circularx', 'circularx']",ae401fd13a8b5e05159782af78854dae96c017115e2cd6f1326a1f4dda7fb787
+"HQCNN_fmnist_['circularz', 'circularz', 'circularz']",38d6e79744ee319ec34da41d4222c47966e12baf1f5b232e4efcee73a37378d8
+"HQCNN_fmnist_['fullx', 'fullx', 'fullx']",91d9d531f05cd0b838f2385ffc79a05656f8dee85984c5ebda1d39bb392b8d7e
+"HQCNN_fmnist_['fullz', 'fullz', 'fullz']",379b49e2623485ab954772052907fc4772019ebdc902eac6f697e1a37e5c0d5c
+"HQCNN_fmnist_['staggeredx', 'staggeredx', 'staggeredx']",93fd05077bd8011ef93526dfdbd5ba8e09ed75af80a7d34913ad3d2817cbc28c
+"HQCNN_fmnist_['staggeredz', 'staggeredz', 'staggeredz']",25fd67df90e43eb5568211cb27b88ba30512e31bb13dd9a8eda135a30a8df96d
+CNN_cifar10,dfd9f1679d1fee87be0cb146b1fe5f0910d33a6a0ee115db8083237029801bd6
+"HQCNN_cifar10_['none', 'none', 'none']",8b08617f33057f56bf1ca4260af073f5d198bd1844bbc5049a89f6211388d37d
+"HQCNN_cifar10_['linearx', 'linearx', 'linearx']",0bca3a47f683f63b27e2dcad515f40d97b15cb2689f168311d93455ed59c224d
+"HQCNN_cifar10_['linearz', 'linearz', 'linearz']",27ad7c46bfefcb3c355de50e7117297babb2ece5716514b61ba0966840a2c77c
+"HQCNN_cifar10_['circularx', 'circularx', 'circularx']",98c1d625fed1cb67f6371ced3b9e6bbdab616bd361ffcf8518fd3256714e6421
+"HQCNN_cifar10_['circularz', 'circularz', 'circularz']",7bbe6443e80fbad2dd35872abf47871c918ec523abbee9e766bcc417877d4989
+"HQCNN_cifar10_['fullx', 'fullx', 'fullx']",a6576cb581ce45e0bf60666560db259853a452eec0a1b8bb8767865921c9edab
+"HQCNN_cifar10_['fullz', 'fullz', 'fullz']",f73690ce80bce7f498e27a5ef350775fdb278ef728d15b528d82386fd2f693bc
+"HQCNN_cifar10_['staggeredx', 'staggeredx', 'staggeredx']",06057772973b9be362000dd755f43129bb30ffd3c7003018229bad6ab3cfbee4
+"HQCNN_cifar10_['staggeredz', 'staggeredz', 'staggeredz']",a91e319c870f2d5325fa96a64addeebd02c079105244096a424a4fba6fce7891
