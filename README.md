@@ -54,6 +54,8 @@ The structure of the dataframes is given by:
 
 ![plot](./lib/imgs/Dataset_design.png)
 
+In transferability metrics, TSR stands for "transfer success rate" and is the fraction of adversarial examples that successfully fool the model. The accuracy gap measures the convergence between self- and transfer attacks. A lower accuracy gap implies a transfer attack was as effective as a white-box attack, which is the theoretical best-case scenario.
+
 For exact specifics refer to the file:
 
   * evaluation\_pipeline.py
