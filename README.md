@@ -89,7 +89,7 @@ Running the experiment produces 3 useful csv files:
 
   * Transfer attacks from Classical CNNS to Hybrid Quantum CNNs are a greater risk than transfer attacks from Hybrid Quantum CNNs to Classical CNNs.  This asymmetry in transferability has heavy security implications. In practical adversarial settings, attackers may not have access to quantum models but can easily target classical ones. These results imply that such attacks can still compromise quantum systems indirectly.
 
-  * Datastes with higher mean adversarial accuracy have lower mean transfer success rates, and vice versa. But within a single dataset, there is no statistically significant correlation between TSR and adversarial accuracy. Thus, these need to be studied separately. 
+  * Datasets with higher mean adversarial accuracy have lower mean transfer success rates, and vice versa. But within a single dataset, there is no statistically significant correlation between TSR and adversarial accuracy. Thus, these need to be studied separately. 
 
   * Within each dataset, convergence between transfer and self-attacks is directly related to TSR, since it is inversely related to accuracy drop. This correlation is only significant in CIFAR-10.
   The strong correlation in the combined data implies datasets that have high transfer success rates (higher complexity) also have higher accuracy drops, that is white-box attacks dominate transfer attacks as dataset complexity increases, widening gap (reducing convergence). 
