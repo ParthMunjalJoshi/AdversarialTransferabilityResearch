@@ -1,0 +1,171 @@
+# AdversarialTransferabilityResearch
+
+This project investigates the **adversarial transferability** of gradient-based attacks, specifically **Fast Gradient Sign Method (FGSM)**, **Projected Gradient Descent (PGD)**, and **Carlini-Wagner (CW)**, between Classical Convolutional Neural Networks (CNNs) and Hybrid Quantum-Classical CNNs (HQCNNs). This research focuses on the entanglement strategies used in HQCNNs.
+
+ 
+## Project Overview
+
+Adversarial examples, crafted on one type of model (classical or hybrid), are evaluated on the other to analyze their **cross-model vulnerability**. This bidirectional assessment aims to reveal the extent to which adversarial perturbations generated on one architecture can affect the other.
+
+## Why is this important?
+
+Understanding adversarial transferability is crucial for several reasons:
+
+  * **Grey-Box and Black-Box Attacks:** In real-world scenarios, attackers often don't have full access to a model's architecture or parameters. Transferability allows adversaries to exploit shared weaknesses even with limited information. This is done by training adversarial examples on a surrogate model and using them to attack the target model.
+  * **Robust AI Systems:** The findings from this study will inform the design of more robust and secure AI systems, particularly within the evolving landscape of quantum machine learning. It will deliver insight as to which entanglement strategies are more adversarially robust and less-prone to transfer attacks.
+
+## Methodology
+
+![plot](./lib/imgs/EntanglementExperiment.png)
+
+The experiment shall generate lists describing entanglement layers in a defined model architecture.
+This shall be passed to subsequent modules for model creation, model training and evaluation.
+
+### Model Creation:
+
+![plot](./lib/imgs/EntglModelFactory.png)
+
+This module creates a HQCNN/Classical model based on parameters passed to it. For exact specifics refer to the files:
+
+  * entanglement\_model\_factory.py
+  * \_entanglement\_circuit.py
+  * \_entanglement\_layer.py
+
+### Model Training:
+
+![plot](./lib/imgs/TrainModule.png)
+
+This module takes a model and a dataset and trains the model on that specific dataset. Training data is split 9:1 into training
+and validation data. Model is trained using the Adam Optimizer. For exact specifics refer to the file:
+
+  * training\_module.py
+
+### Model Evaluation:
+
+![plot](./lib/imgs/EvalPipe.png)
+
+This pipeline takes two models and calculates adversarial robustness and transferability metrics for them and returns dataframes.
+
+:warning: **CAUTION** :warning: By default Carlini-Wagner attacks are disabled in the pipeline as they are computationally 
+expensive. If you wish to include them you can do so by setting carlini_wagner_flag = True in evaluation_pipeline.py
+before running the experiment.
+
+The structure of the dataframes is given by:
+
+![plot](./lib/imgs/Dataset_design.png)
+
+In transferability metrics, TSR stands for "transfer success rate" and is the fraction of adversarial examples that successfully fool the model. The accuracy gap measures the convergence between self- and transfer attacks. A lower accuracy gap implies a transfer attack was as effective as a white-box attack, which is the theoretical best-case scenario.
+
+For exact specifics refer to the file:
+
+  * evaluation\_pipeline.py
+
+### Performance metrics:
+This project yielded significant improvements in experimental efficiency and throughput, driven by robust engineering practices and a focus on automation. The key performance metrics achieved are:
+  * **Reduced manual overhead in evaluation by 75%** :
+  Without the evaluation pipeline, robustness and bi-directional transferability would need to be assessed separately, increasing complexity and manual effort. The pipeline consolidates these evaluations into a single, streamlined step. The resulting reduction in overhead is quantified by the decrease in wait states—by minimizing idle time, the pipeline can operate in the background, enabling researchers to remain productive and continue other tasks concurrently.
+  * **Up to 88% Faster Repeat Evaluations** :
+  This acceleration was enabled by integrating model fingerprinting and memoization into the evaluation pipeline. When an evaluation for a specific model configuration and attack scenario had been performed previously, the pipeline now reuses the stored adversarial examples instead of re-computing them. This was measured by comparing the execution time of repeated evaluations with and without the memoization system. This improvement is particularly valuable in scenarios where only one of the two compared models is repeated, which occurs frequently.
+  * **Boosted Experimental Throughput by 50%** : 
+  This improvement was a direct result of automating the entire experimental workflow, including model generation, training, evaluation, and result logging. By reducing manual intervention and speeding up repeated evaluations, the total number of experiments that could be executed and analyzed within a given timeframe increased significantly. This was measured by comparing the number of completed experiment runs per unit of time before and after the automation of these processes for a small scale test experiment. 
+
+### Datasets used:
+  * MNIST dataset
+  * FashionMNIST dataset
+  * CIFAR - 10 dataset
+
+### Final Output:
+Running the experiment produces 3 useful csv files:
+  * lib/index.csv:  contains model ID (hash) and architecture (entanglement strategy details)
+  * lib/robustness.csv:  contains compiled robustness data
+  * lib/transferability.csv: contains compiled transferability data
+
+### Conclusions:
+  * Quantum advantage is data and task-dependent. HQCNNs offer clear benefits:
+      * On mid-complexity data (FMNIST): in both accuracy and robustness
+      *	On high-complexity data (CIFAR-10): in robustness only
+      *	On low-complexity data (MNIST): little advantage due to ceiling effect
+  These findings suggest that quantum models are most useful when classical models struggle — either due to data complexity or attack vulnerability.
+
+  * Transfer attacks from Classical CNNS to Hybrid Quantum CNNs are a greater risk than transfer attacks from Hybrid Quantum CNNs to Classical CNNs.  This asymmetry in transferability has heavy security implications. In practical adversarial settings, attackers may not have access to quantum models but can easily target classical ones. These results imply that such attacks can still compromise quantum systems indirectly.
+
+  * Datasets with higher mean adversarial accuracy have lower mean transfer success rates, and vice versa. But within a single dataset, there is no statistically significant correlation between TSR and adversarial accuracy. Thus, these need to be studied separately. 
+
+  * Within each dataset, convergence between transfer and self-attacks is directly related to TSR, since it is inversely related to accuracy drop. This correlation is only significant in CIFAR-10.
+  The strong correlation in the combined data implies datasets that have high transfer success rates (higher complexity) also have higher accuracy drops, that is white-box attacks dominate transfer attacks as dataset complexity increases, widening gap (reducing convergence). 
+
+  * The results highlight the complex interplay between entanglement strategy, gate choice, dataset characteristics, and the direction of adversarial transferability. While certain entanglement strategies and gates can significantly impact TSR for specific attack scenarios and datasets, a universally optimal "entanglement strategy" that either consistently minimizes incoming TSR or maximizes outgoing TSR across all datasets and attack types is not supported by this data. This suggests that quantum-classical adversarial robustness and transferability are highly context-dependent, necessitating tailored approaches based on the specific dataset and the direction of the adversarial attack. Further research could explore the underlying reasons for these dataset-specific differences and investigate more sophisticated entanglement or gate strategies.
+
+ --> For detailed results with illustrations refer to lib/results/Results.pdf
+
+---
+
+## Getting Started
+
+### Prerequisites:
+
+  * Python 3.12
+  * pip >= 25.1.1
+
+### Installation:
+
+```bash
+git clone https://github.com/ParthMunjalJoshi/AdversarialTransferabilityResearch.git
+cd AdversarialTransferabilityResearch
+pip install -r requirements.txt
+```
+
+### Usage:
+```bash
+python entanglement_experiment_homogenous.py
+```
+
+To modify configurations related to different aspects of the pipeline you may access :
+  * lib/expt_config.json
+ 
+## Expected Outcomes
+The project aims to provide insights into:
+  * The degree of adversarial transferability between classical and hybrid quantum-classical CNNs.
+  * The impact of different entanglement strategies on adversarial robustness and transferability.
+
+---
+
+
+## Entanglement Strategies
+
+Entanglement strategies are an important aspect of Parametric Quantum Circuit design. 
+
+### Homogenous Strategies:
+
+These are Ansatz using only one type of entanglement layer throughout the circuit. The following are a few types:
+  * No entanglement:
+    In this strategy, the PQC consists only of parametric phase gates and no entangling layers. 
+
+    ![plot](./lib/imgs/strat/no_entg.png)
+
+
+  * Linear Entanglement:
+    In this strategy, we apply CNOT/CZ between neighboring qubits (N,N+1) pairs.
+
+    ![plot](./lib/imgs/strat/linear_entg.png)
+
+  * Circular Entanglement:
+    This is an extension to the linear entanglement strategy where the last qubit is linked with the first to complete the ring.
+
+    ![plot](./lib/imgs/strat/circular_entg.png)    
+
+  * Full Entanglement:
+    In this strategy, there is a CNOT/CZ between every pair of qubits.
+  
+    ![plot](./lib/imgs/strat/full_entg.png)   
+
+  * Staggered Entanglement:
+    In this strategy, linking is done in layers or stages, typically by applying entangling gates to different non-overlapping, sets of qubits in sequential blocks of the circuit.
+
+    ![plot](./lib/imgs/strat/stag_entg.png) 
+
+Note: in the above illustrations we have used CNOT but CZ can also produce an entangling effect.
+
+## Acknowledgements
+
+This research was conducted during an internship at CDAC Pune in the summer of 2025. The findings were presented as a poster at Supercomputing India 2025 (SCI2025) with Mr. Parth Munjal Joshi, Mr. Vishu Vyas, Mr. Aashay Pandharpatte, Mr. Manpreet Singh, Mr. Amit Saxena as authors. The authors acknowledge Ms. Lakshmi Panat Scientist G & Program Director Artificial Intelligence & Quantum Technology for unwavering support. Ministry of Electronics and Information Technology (MeitY) Govt. of India for funding. Version history was withheld from public repository as per institutional guidelines.
